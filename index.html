@@ -56,9 +56,57 @@
         position: absolute; 
         z-index: 1
     }
+
+<!--- sidenav style --->        
+    #mySidenav a {
+    position: absolute;
+    left: -120px;
+    transition: 0.3s;
+    padding: 15px;
+    width: 100px;
+    text-decoration: none;
+    font-size: 18px;
+    color: white;
+    border-radius: 0 4px 4px 0;
+}
+
+#mySidenav a:hover {
+    left: 0;
+}
+
+#tradChi {
+    top: 20px;
+    background-color: rgba(76,175,80,0.8);
+    text-align : center;
+}
+#english {
+    top: 80px;
+    background-color: rgba(33,150,243,0.8);
+    text-align : center;
+}
+
+#simpchi {
+    top: 140px;
+    background-color: rgba(244,67,54,0.8);
+    text-align : center;
+}
+    
+    
+    
     </style>
 </head>
 <body>
+    
+    
+    <div id="mySidenav" class="sidenav">
+  <a href="https://tonyhooffice.github.io/" id="tradChi">繁體中文</a>
+  <a href="https://tonyhooffice.github.io/" id="english">English</a>
+  <a href="https://tonyhooffice.github.io/" id="simpchi">简体中文</a>
+
+</div>
+    
+    
+    
     <!-- Swiper -->
     <div class="swiper-container swiper-container-v">
         <div class="swiper-wrapper">
