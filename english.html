@@ -1,4 +1,4 @@
-﻿​<!DOCTYPE html>
+​<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -6,7 +6,7 @@
     <meta name="viewport" content="height=device-height, initial-scale=1, minimum-scale=1, maximum-scale=1">
 
     <!-- Link Swiper's CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.4.2/css/swiper.min.css">
+    <link rel="stylesheet" href="swiper.min.css">
 
     <!-- Demo styles -->
 
@@ -89,6 +89,8 @@
                         </div>
                     </div>
                     <div class="swiper-pagination swiper-pagination-h"></div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
                 </div>
             </div>
            
@@ -136,6 +138,8 @@
                         </div>
                     </div>
                     <div class="swiper-pagination swiper-pagination-h"></div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
                 </div>
             </div>
 
@@ -183,6 +187,8 @@
                         </div>
                     </div>
                     <div class="swiper-pagination swiper-pagination-h"></div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
                 </div>
             </div>
             
@@ -203,6 +209,8 @@
                         </div>
                     </div>
                     <div class="swiper-pagination swiper-pagination-h"></div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
                 </div>
             </div>
             
@@ -220,6 +228,8 @@
                         </div>
                     </div>
                     <div class="swiper-pagination swiper-pagination-h"></div>
+        <div class="swiper-button-next"></div>
+        <div class="swiper-button-prev"></div>
                 </div>
             </div>
 
@@ -234,7 +244,7 @@
     </div>
 
     <!-- Swiper JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Swiper/3.4.2/js/swiper.min.js"></script>
+    <script src="swiper.min.js"></script>
 
     <!-- Initialize Swiper -->
     <script>
@@ -249,6 +259,8 @@
     var swiperH = new Swiper('.swiper-container-h', {
         pagination: '.swiper-pagination-h',
         paginationClickable: true,
+        nextButton: '.swiper-button-next',
+        prevButton: '.swiper-button-prev',
         spaceBetween: 0,
         speed: 550,
         loop: true
