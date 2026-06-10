@@ -94,9 +94,11 @@
     <div id="loader" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-white p-6 transition-all duration-500">
         <div class="relative flex items-center justify-center mb-6">
             <div class="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-            <span class="absolute text-xs font-semibold text-indigo-400">CSV</span>
+            <!-- Smiling text replaced and set to large size -->
+            <span class="absolute text-3xl font-semibold text-indigo-400 select-none">☺</span>
         </div>
-        <h2 class="text-xl font-bold mb-2">Fetching Sheets Data</h2>
+        <!-- Updated title text as requested -->
+        <h2 class="text-xl font-bold mb-2">Loading content...</h2>
         <p id="loaderStatus" class="text-sm text-slate-400 text-center max-w-md">Resolving redirection link from the primary index registry...</p>
         
         <!-- Offline Mock Trigger in case of Sheet API failure -->
@@ -373,7 +375,7 @@
             const statusEl = document.getElementById("loaderStatus");
             try {
                 // Step 1: Read the index pointer from Sheet Alpha
-                statusEl.innerText = "Connecting to Sheet Alpha index...";
+                statusEl.innerText = "Please wait..."; // Modified text
                 const responseAlpha = await fetch(MASTER_SHEET_CSV);
                 if (!responseAlpha.ok) throw new Error("Could not fetch the Master registry Sheet.");
                 
@@ -389,7 +391,7 @@
                 const targetSheetCsvUrl = getCsvExportUrl(targetSheetRawUrl);
 
                 // Step 2: Fetch contents of Sheet Beta
-                statusEl.innerText = "Connecting to Sheet Beta workspace contents...";
+                statusEl.innerText = "Please wait... Almost done..."; // Modified text
                 const responseBeta = await fetch(targetSheetCsvUrl);
                 if (!responseBeta.ok) throw new Error("Could not fetch operational Sheet Beta.");
 
