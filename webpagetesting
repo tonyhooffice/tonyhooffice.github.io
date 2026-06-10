@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collapsible Columns Workspace</title>
+    <!-- Tailwind CSS for modern, premium utility styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom dynamic properties for settings customizability */
+        :root {
+            --bg-color: #f8fafc;
+            
+            --col1-color: #000000;
+            --col1-font: ui-sans-serif, system-ui, sans-serif;
+            --col1-size: 16px;
+            
+            --col2-color: #000000;
+            --col2-font: ui-sans-serif, system-ui, sans-serif;
+            --col2-size: 16px;
+            
+            --col3-color: #000000;
+            --col3-font: ui-sans-serif, system-ui, sans-serif;
+            --col3-size: 16px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Dynamically synchronized background class */
+        .sync-bg {
+            background-color: var(--bg-color) !important;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Set up dynamic fonts and colors for column elements */
+        .col-cell-1 {
+            color: var(--col1-color);
+            font-family: var(--col1-font);
+            font-size: var(--col1-size);
+        }
+        .col-cell-2 {
+            color: var(--col2-color);
+            font-family: var(--col2-font);
+            font-size: var(--col2-size);
+        }
+        .col-cell-3 {
+            color: var(--col3-color);
+            font-family: var(--col3-font);
+            font-size: var(--col3-size);
+        }
+
+        /* Custom scrollbar for premium touch and feel */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-slate-800">
+
+    <!-- Custom Notification/Alert Modal (Avoids native browser alert blockages) -->
+    <div id="customAlert" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
+        <div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl border border-slate-100 transform scale-95 transition-transform duration-300" id="customAlertBox">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center text-amber-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900">Constraint Rule</h3>
+            </div>
+            <p id="customAlertText" class="text-slate-600 mb-6 text-sm"></p>
+            <button onclick="closeAlert()" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 px-4 rounded-xl transition-colors text-sm shadow-sm">
+                Understand
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Loading & Fallback Interface -->
+    <div id="loader" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900 text-white p-6 transition-all duration-500">
+        <div class="relative flex items-center justify-center mb-6">
+            <div class="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            <span class="absolute text-xs font-semibold text-indigo-400">CSV</span>
+        </div>
+        <h2 class="text-xl font-bold mb-2">Fetching Sheets Data</h2>
+        <p id="loaderStatus" class="text-sm text-slate-400 text-center max-w-md">Resolving redirection link from the primary index registry...</p>
+        
+        <!-- Offline Mock Trigger in case of Sheet API failure -->
+        <button id="fallbackBtn" onclick="loadMockData()" class="mt-8 px-5 py-2.5 bg-white/10 hover:bg-white/15 text-slate-300 hover:text-white rounded-xl text-sm font-medium transition-all border border-white/10 hidden">
+            Load Mock Simulation Data
+        </button>
+    </div>
+
+    <!-- Pinned Header Block (Requirement 3a & 3b with dynamic background color synchronization) -->
+    <header class="sticky top-0 left-0 right-0 z-40 backdrop-blur-md border-b border-slate-200/80 shadow-sm flex-none sync-bg">
+        
+        <!-- Top Bar Row Content - Hidden as per user request to hide WebpageTitle and Active Columns Sync (Requirement 3) -->
+        <div class="max-w-7xl mx-auto px-4 hidden">
+            <div class="flex items-center justify-between py-4 border-b border-slate-100">
+                <h1 id="pageTitle" class="text-lg font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-indigo-600 animate-pulse"></span>
+                    Loading Workspace...
+                </h1>
+                <span class="text-xs bg-slate-100/80 text-slate-600 font-semibold px-2.5 py-1 rounded-full border border-slate-200">Active Columns Sync</span>
+            </div>
+        </div>
+
+        <!-- Sticky Collapsible Columns Heading Row (Requirement 3a, 3e, with header colors and background following the dynamic color states) -->
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex w-full divide-x divide-slate-100 border-b border-slate-100 text-xs font-bold uppercase tracking-wider sync-bg">
+                <div id="headerCol1" class="flex-1 p-4 transition-all duration-300 overflow-hidden col-cell-1">Column 1 Contents</div>
+                <div id="headerCol2" class="flex-1 p-4 transition-all duration-300 overflow-hidden col-cell-2">Column 2 Contents</div>
+                <div id="headerCol3" class="flex-1 p-4 transition-all duration-300 overflow-hidden col-cell-3" style="display: none;">Column 3 Contents</div>
+            </div>
+        </div>
+
+        <!-- Panel Bar Toolbar: Tabs (Left) & Controls (Right) (Requirement 3b, 3c) -->
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <!-- Tabs container (Left) -->
+            <div class="flex items-center gap-1.5 bg-slate-100/60 p-1 rounded-xl">
+                <button id="tabBtn1" onclick="toggleColumn(1)" class="px-4 py-2 text-xs font-semibold rounded-lg transition-all shadow-sm bg-white text-slate-800 border border-slate-200/50 ring-1 ring-slate-100">
+                    Tab A
+                </button>
+                <button id="tabBtn2" onclick="toggleColumn(2)" class="px-4 py-2 text-xs font-semibold rounded-lg transition-all shadow-sm bg-white text-slate-800 border border-slate-200/50 ring-1 ring-slate-100">
+                    Tab B
+                </button>
+                <button id="tabBtn3" onclick="toggleColumn(3)" class="px-4 py-2 text-xs font-semibold rounded-lg transition-all shadow-sm bg-slate-50 text-slate-400 hover:text-slate-600 border border-slate-200/40">
+                    Tab C
+                </button>
+            </div>
+
+            <!-- Settings and Home Buttons (Right) (Requirement 3c) -->
+            <div class="flex items-center gap-2">
+                <!-- Setting Button (Typical cog SVG icon) -->
+                <button onclick="toggleSettings(true)" class="p-2.5 text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200/60 transition-all shadow-sm" title="Webpage Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.43l-1.003.828c-.293.241-.438.613-.43.992a7.723 7.723 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.43l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.991l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.28z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
+                
+                <!-- Home Button (Typical home SVG icon) -->
+                <a id="homeLink" href="#" target="_blank" class="p-2.5 text-slate-600 hover:text-slate-900 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200/60 transition-all shadow-sm" title="Go Home">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Synchronized Text Grid Rows Viewport (Requirement 3f) -->
+    <!-- Placing rows inside a single outer scrollable container guarantees 100% synchronized vertical scrolling -->
+    <main class="flex-1 overflow-y-auto w-full">
+        <div class="max-w-7xl mx-auto px-4 py-4">
+            <div id="tableBody" class="flex flex-col gap-0.5 rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm sync-bg">
+                <!-- Dynamically populated via sheets -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Slide-over Settings Customization Panel (Requirement 3d) -->
+    <div id="settingsOverlay" class="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300 flex justify-end">
+        <div id="settingsContent" class="bg-white w-full max-w-md h-full shadow-2xl p-6 flex flex-col justify-between translate-x-full transition-transform duration-300">
+            
+            <div class="overflow-y-auto flex-1 pr-1">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+                    <!-- Title block left blank (Requirement 3) -->
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2"></h3>
+                    <button onclick="toggleSettings(false)" class="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Webpage Color Setting (Requirement 3d - i; label left blank as per Requirement 3) -->
+                <div class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2"></label>
+                    <div id="bgColorContainer" class="flex gap-2">
+                        <!-- Color buttons dynamically added -->
+                    </div>
+                </div>
+
+                <!-- Column Style Settings (Requirement 3d - ii, iii, iv) -->
+                <div class="space-y-6">
+                    <!-- Column 1 Customizations -->
+                    <div class="p-4 rounded-xl border border-slate-100 bg-white shadow-sm space-y-4">
+                        <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                            <span class="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
+                            <h4 id="settingTitle1" class="font-bold text-slate-800 text-sm"></h4>
+                        </div>
+                        
+                        <!-- Font Color selection -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Font Color</label>
+                            <div id="col1Colors" class="flex gap-1.5"></div>
+                        </div>
+
+                        <!-- Font Family selection -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Font Type</label>
+                            <select id="col1FontSelect" onchange="updateFont(1, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none"></select>
+                        </div>
+
+                        <!-- Font Size selection -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase">Font Size</label>
+                                <span id="col1SizeVal" class="text-xs font-semibold text-slate-600">16px</span>
+                            </div>
+                            <input id="col1SizeRange" type="range" min="10" max="26" step="1" value="16" oninput="updateFontSize(1, this.value)" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                        </div>
+                    </div>
+
+                    <!-- Column 2 Customizations -->
+                    <div class="p-4 rounded-xl border border-slate-100 bg-white shadow-sm space-y-4">
+                        <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                            <h4 id="settingTitle2" class="font-bold text-slate-800 text-sm"></h4>
+                        </div>
+                        
+                        <!-- Font Color selection -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Font Color</label>
+                            <div id="col2Colors" class="flex gap-1.5"></div>
+                        </div>
+
+                        <!-- Font Family selection -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Font Type</label>
+                            <select id="col2FontSelect" onchange="updateFont(2, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none"></select>
+                        </div>
+
+                        <!-- Font Size selection -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase">Font Size</label>
+                                <span id="col2SizeVal" class="text-xs font-semibold text-slate-600">16px</span>
+                            </div>
+                            <input id="col2SizeRange" type="range" min="10" max="26" step="1" value="16" oninput="updateFontSize(2, this.value)" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+                        </div>
+                    </div>
+
+                    <!-- Column 3 Customizations -->
+                    <div class="p-4 rounded-xl border border-slate-100 bg-white shadow-sm space-y-4">
+                        <div class="flex items-center gap-2 pb-2 border-b border-slate-100">
+                            <span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                            <h4 id="settingTitle3" class="font-bold text-slate-800 text-sm"></h4>
+                        </div>
+                        
+                        <!-- Font Color selection -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Font Color</label>
+                            <div id="col3Colors" class="flex gap-1.5"></div>
+                        </div>
+
+                        <!-- Font Family selection -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Font Type</label>
+                            <select id="col3FontSelect" onchange="updateFont(3, this.value)" class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-purple-500 focus:outline-none"></select>
+                        </div>
+
+                        <!-- Font Size selection -->
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="block text-[11px] font-bold text-slate-400 uppercase">Font Size</label>
+                                <span id="col3SizeVal" class="text-xs font-semibold text-slate-600">16px</span>
+                            </div>
+                            <input id="col3SizeRange" type="range" min="10" max="26" step="1" value="16" oninput="updateFontSize(3, this.value)" class="w-full h-1 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-purple-600">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- "Apply & Save Changes" button has been removed (Requirement 4) -->
+        </div>
+    </div>
+
+    <!-- Core Interactive Client Pipeline Logic -->
+    <script>
+        // Target Sheet pointer location (Sheet Alpha)
+        const MASTER_SHEET_CSV = "https://docs.google.com/spreadsheets/d/1tp8aCnchL3QIJiZMKAduJJvehSNG2vIJ2Jfnx7qcs-Q/export?format=csv";
+
+        // Application State State-machine
+        let appState = {
+            title: "",
+            homeUrl: "",
+            topBarContents: ["", "", ""],
+            tabLabels: ["", "", ""],
+            bgColors: ["#ffffff", "#f8fafc", "#f1f5f9"],
+            fontColors: ["#000000", "#000000", "#000000"], // Set of available color values
+            selectedFontColors: ["#000000", "#000000", "#000000"], // Initial active color value mapping for columns 1, 2, and 3
+            columnFonts: [
+                ["Inter", "Helvetica", "Georgia"],
+                ["Roboto", "Arial", "Courier New"],
+                ["System", "Verdana", "Times New Roman"]
+            ],
+            tableRows: [],
+            activeColumns: [1, 2] // Default collapse Column 3 / C (Requirement 5)
+        };
+
+        // Utility to convert shared sheet link to immediate raw CSV export format
+        function getCsvExportUrl(googleSheetUrl) {
+            if (!googleSheetUrl) return "";
+            try {
+                // Extracts spreadsheet ID
+                const matchId = googleSheetUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+                if (matchId && matchId[1]) {
+                    return `https://docs.google.com/spreadsheets/d/${matchId[1]}/export?format=csv`;
+                }
+            } catch (err) {
+                console.error("Invalid URL formatting from Sheet pointer:", err);
+            }
+            return googleSheetUrl;
+        }
+
+        // Custom parser to robustly split CSV data cells even when containing commas
+        function parseCSVData(rawText) {
+            let entries = [];
+            let row = [""];
+            let insideQuotes = false;
+
+            for (let idx = 0; idx < rawText.length; idx++) {
+                let char = rawText[idx];
+                let peek = rawText[idx + 1];
+
+                if (char === '"') {
+                    if (insideQuotes && peek === '"') {
+                        row[row.length - 1] += '"';
+                        idx++;
+                    } else {
+                        insideQuotes = !insideQuotes;
+                    }
+                } else if (char === ',' && !insideQuotes) {
+                    row.push('');
+                } else if ((char === '\r' || char === '\n') && !insideQuotes) {
+                    if (char === '\r' && peek === '\n') {
+                        idx++;
+                    }
+                    entries.push(row.map(cell => cell.trim().replace(/^"|"$/g, '').replace(/""/g, '"')));
+                    row = [""];
+                } else {
+                    row[row.length - 1] += char;
+                }
+            }
+            if (row.length > 1 || row[0] !== '') {
+                entries.push(row.map(cell => cell.trim().replace(/^"|"$/g, '').replace(/""/g, '"')));
+            }
+            return entries;
+        }
+
+        // Standard dynamic fetch implementation
+        async function runPipeline() {
+            const statusEl = document.getElementById("loaderStatus");
+            try {
+                // Step 1: Read the index pointer from Sheet Alpha
+                statusEl.innerText = "Connecting to Sheet Alpha index...";
+                const responseAlpha = await fetch(MASTER_SHEET_CSV);
+                if (!responseAlpha.ok) throw new Error("Could not fetch the Master registry Sheet.");
+                
+                const csvTextAlpha = await responseAlpha.text();
+                const matrixAlpha = parseCSVData(csvTextAlpha);
+                
+                if (!matrixAlpha || !matrixAlpha[0] || !matrixAlpha[0][0]) {
+                    throw new Error("Unable to read URL from cell A1 of Sheet Alpha.");
+                }
+
+                const targetSheetRawUrl = matrixAlpha[0][0];
+                statusEl.innerText = "Extracting URL pointing to Sheet Beta...";
+                const targetSheetCsvUrl = getCsvExportUrl(targetSheetRawUrl);
+
+                // Step 2: Fetch contents of Sheet Beta
+                statusEl.innerText = "Connecting to Sheet Beta workspace contents...";
+                const responseBeta = await fetch(targetSheetCsvUrl);
+                if (!responseBeta.ok) throw new Error("Could not fetch operational Sheet Beta.");
+
+                const csvTextBeta = await responseBeta.text();
+                const matrixBeta = parseCSVData(csvTextBeta);
+
+                // Step 3: Populate Application State
+                parseSheetBeta(matrixBeta);
+
+                // Step 4: Render UI Elements
+                renderWorkspace();
+
+                // Close loading cover
+                document.getElementById("loader").classList.add("opacity-0", "pointer-events-none");
+            } catch (err) {
+                console.error("Pipeline breakdown:", err);
+                statusEl.innerHTML = `<span class="text-rose-400 font-semibold">Failed to load public Google Sheets files:</span><br>${err.message}<br><br><span class="text-slate-400">Please make sure both sheets are shared as "Anyone with the link can view".</span>`;
+                // Show fallback option
+                document.getElementById("fallbackBtn").classList.remove("hidden");
+            }
+        }
+
+        // Process matrix representation from Sheet Beta (Requirement 2)
+        function parseSheetBeta(matrix) {
+            // (1) Page title (B1 -> Row index 0, Col index 1)
+            appState.title = matrix[0]?.[1] || "Default Sheet Workspace";
+
+            // (1) Home link (A1 -> Row index 0, Col index 0)
+            appState.homeUrl = matrix[0]?.[0] || "#";
+
+            // (3e) Top bar column row contents (Row 2 -> Row index 1, Columns 0, 1, 2)
+            appState.topBarContents = [
+                matrix[1]?.[0] || "Header A",
+                matrix[1]?.[1] || "Header B",
+                matrix[1]?.[2] || "Header C"
+            ];
+
+            // (3b) Tab Button labels (Row 3 -> Row index 2, Columns 0, 1, 2)
+            appState.tabLabels = [
+                matrix[2]?.[0] || "Tab A",
+                matrix[2]?.[1] || "Tab B",
+                matrix[2]?.[2] || "Tab C"
+            ];
+
+            // (3d-i) Webpage Background color options (Row 4 -> Row index 3, Columns 0, 1, 2)
+            appState.bgColors = [
+                matrix[3]?.[0] || "#ffffff",
+                matrix[3]?.[1] || "#f8fafc",
+                matrix[3]?.[2] || "#f1f5f9"
+            ];
+
+            // (3d-ii) Column Font Colors (Row 5 -> Row index 4, Columns 0, 1, 2) - Defaults to Black if empty
+            appState.fontColors = [
+                matrix[4]?.[0] || "#000000",
+                matrix[4]?.[1] || "#000000",
+                matrix[4]?.[2] || "#000000"
+            ];
+
+            // Default Font Colors for second and third columns follow that of the first column (Requirement 5 / Font default color)
+            appState.selectedFontColors = [
+                appState.fontColors[0], // Column 1 starts with first choice
+                appState.fontColors[0], // Column 2 follows Column 1 (Requirement)
+                appState.fontColors[0]  // Column 3 follows Column 1 (Requirement)
+            ];
+
+            // (3d-iii) Font type choices: 
+            // Col 1: A6, A7, A8 (Row 6, 7, 8 -> Row index 5, 6, 7; Col 0)
+            // Col 2: B6, B7, B8 (Row 6, 7, 8 -> Row index 5, 6, 7; Col 1)
+            // Col 3: C6, C7, C8 (Row 6, 7, 8 -> Row index 5, 6, 7; Col 2)
+            appState.columnFonts = [
+                [matrix[5]?.[0] || "ui-sans-serif", matrix[6]?.[0] || "ui-serif", matrix[7]?.[0] || "monospace"],
+                [matrix[5]?.[1] || "ui-sans-serif", matrix[6]?.[1] || "ui-serif", matrix[7]?.[1] || "monospace"],
+                [matrix[5]?.[2] || "ui-sans-serif", matrix[6]?.[2] || "ui-serif", matrix[7]?.[2] || "monospace"]
+            ];
+
+            // (3f) Text contents of table from Row 9 (Index 8) downwards
+            appState.tableRows = [];
+            for (let r = 8; r < matrix.length; r++) {
+                if (matrix[r].some(val => val !== "")) {
+                    appState.tableRows.push([
+                        matrix[r][0] || "",
+                        matrix[r][1] || "",
+                        matrix[r][2] || ""
+                    ]);
+                }
+            }
+        }
+
+        // Apply visual updates to DOM components
+        function renderWorkspace() {
+            // Document tab title and header title
+            document.title = appState.title;
+            document.getElementById("pageTitle").innerText = appState.title;
+
+            // Direct typical home redirects
+            document.getElementById("homeLink").href = appState.homeUrl;
+
+            // Headers top bar names (Requirement 3a, 3e)
+            document.getElementById("headerCol1").innerText = appState.topBarContents[0];
+            document.getElementById("headerCol2").innerText = appState.topBarContents[1];
+            document.getElementById("headerCol3").innerText = appState.topBarContents[2];
+
+            // Tab Buttons name setup (Requirement 3b)
+            document.getElementById("tabBtn1").innerText = appState.tabLabels[0];
+            document.getElementById("tabBtn2").innerText = appState.tabLabels[1];
+            document.getElementById("tabBtn3").innerText = appState.tabLabels[2];
+
+            // Setup Customizer settings titles (removed "Settings" suffix as per user request)
+            document.getElementById("settingTitle1").innerText = appState.tabLabels[0];
+            document.getElementById("settingTitle2").innerText = appState.tabLabels[1];
+            document.getElementById("settingTitle3").innerText = appState.tabLabels[2];
+
+            // Setup custom background selector options (Requirement 3d-i)
+            const bgContainer = document.getElementById("bgColorContainer");
+            bgContainer.innerHTML = "";
+            appState.bgColors.forEach((color, idx) => {
+                const btn = document.createElement("button");
+                btn.className = `w-10 h-10 rounded-full border-2 transition-transform hover:scale-105 shadow-sm relative ${idx === 0 ? 'border-indigo-600 scale-105' : 'border-slate-200'}`;
+                btn.style.backgroundColor = color;
+                btn.title = color;
+                btn.onclick = () => {
+                    document.documentElement.style.setProperty('--bg-color', color);
+                    // Update border selected indicators
+                    Array.from(bgContainer.children).forEach(b => b.className = "w-10 h-10 rounded-full border-2 border-slate-200 transition-transform hover:scale-105 shadow-sm");
+                    btn.className = "w-10 h-10 rounded-full border-2 border-indigo-600 scale-105 transition-transform shadow-sm";
+                };
+                bgContainer.appendChild(btn);
+            });
+            // Initial Background Selection
+            document.documentElement.style.setProperty('--bg-color', appState.bgColors[0]);
+
+            // Set up Column Colors & Fonts Options
+            setupSettingsOptions(1);
+            setupSettingsOptions(2);
+            setupSettingsOptions(3);
+
+            // Synchronize Table layout items
+            renderTableGrid();
+
+            // Enforce initial default active status colors and styling layout
+            for (let i = 1; i <= 3; i++) {
+                const btn = document.getElementById(`tabBtn${i}`);
+                if (appState.activeColumns.includes(i)) {
+                    btn.className = "px-4 py-2 text-xs font-semibold rounded-lg transition-all shadow-sm bg-white text-slate-800 border border-slate-200/50 ring-1 ring-slate-100";
+                } else {
+                    btn.className = "px-4 py-2 text-xs font-semibold rounded-lg transition-all shadow-sm bg-slate-50 text-slate-400 hover:text-slate-600 border border-slate-200/40";
+                }
+            }
+            syncColumnsDisplay();
+        }
+
+        // Populates selector menus under the slide-over settings panel
+        function setupSettingsOptions(colNum) {
+            const fontSelect = document.getElementById(`col${colNum}FontSelect`);
+            const colorsContainer = document.getElementById(`col${colNum}Colors`);
+
+            // 1. Setup fonts choices
+            fontSelect.innerHTML = "";
+            appState.columnFonts[colNum-1].forEach(fontName => {
+                const opt = document.createElement("option");
+                opt.value = fontName;
+                opt.innerText = fontName;
+                fontSelect.appendChild(opt);
+            });
+            // Apply initial setting
+            updateFont(colNum, appState.columnFonts[colNum-1][0]);
+
+            // 2. Setup colors selectors
+            colorsContainer.innerHTML = "";
+            appState.fontColors.forEach((hexColor, index) => {
+                const btn = document.createElement("button");
+                const isSelected = hexColor === appState.selectedFontColors[colNum-1];
+                btn.className = `w-7 h-7 rounded-lg border transition-transform hover:scale-110 shadow-sm ${isSelected ? 'ring-2 ring-indigo-500 scale-105' : 'border-slate-200'}`;
+                btn.style.backgroundColor = hexColor;
+                btn.title = hexColor;
+                btn.onclick = () => {
+                    appState.selectedFontColors[colNum-1] = hexColor;
+                    document.documentElement.style.setProperty(`--col${colNum}-color`, hexColor);
+                    
+                    // Re-draw selectors styling highlights
+                    Array.from(colorsContainer.children).forEach((b, idx) => {
+                        const isCurrent = appState.fontColors[idx] === hexColor;
+                        b.className = `w-7 h-7 rounded-lg border transition-transform hover:scale-110 shadow-sm ${isCurrent ? 'ring-2 ring-indigo-500 scale-105' : 'border-slate-200'}`;
+                    });
+                };
+                colorsContainer.appendChild(btn);
+            });
+            // Initial selection match setup
+            document.documentElement.style.setProperty(`--col${colNum}-color`, appState.selectedFontColors[colNum-1]);
+        }
+
+        // Core table visual grid alignment builder (Requirement 3f)
+        function renderTableGrid() {
+            const body = document.getElementById("tableBody");
+            body.innerHTML = "";
+
+            if (appState.tableRows.length === 0) {
+                body.innerHTML = `<div class="p-8 text-center text-slate-400 font-medium bg-white">No synchronized dataset found in Sheet Beta.</div>`;
+                return;
+            }
+
+            // Create unified horizontal elements keeping vertical indexes always in complete sync
+            appState.tableRows.forEach((rowCells, rowIndex) => {
+                const rowDiv = document.createElement("div");
+                rowDiv.className = "flex w-full divide-x divide-slate-100 sync-bg hover:bg-black/5 transition-colors border-b border-slate-100/60 last:border-b-0";
+                rowDiv.dataset.rowIndex = rowIndex;
+
+                rowCells.forEach((cellText, colIndex) => {
+                    const cellDiv = document.createElement("div");
+                    const colNum = colIndex + 1;
+                    
+                    // Assign classes dynamically for custom styling adjustments
+                    cellDiv.id = `cell-r${rowIndex}-c${colNum}`;
+                    cellDiv.className = `flex-1 p-4 md:p-6 transition-all duration-300 col-cell-${colNum} break-words leading-relaxed`;
+                    cellDiv.innerText = cellText;
+
+                    // If column is currently collapsed/hidden
+                    if (!appState.activeColumns.includes(colNum)) {
+                        cellDiv.style.display = "none";
+                    }
+
+                    rowDiv.appendChild(cellDiv);
+                });
+
+                body.appendChild(rowDiv);
+            });
+        }
+
+        // Toggles Column visibility status (Requirement 3b, 3e, 3f)
+        function toggleColumn(colNum) {
+            const index = appState.activeColumns.indexOf(colNum);
+            
+            if (index > -1) {
+                // Collapse action validation: At least 1 column must stay active
+                if (appState.activeColumns.length <= 1) {
+                    showAlert("At least one column must remain visible. To close this column, please open another first.");
+                    return;
+                }
+                // Hide column elements
+                appState.activeColumns.splice(index, 1);
+                document.getElementById(`tabBtn${colNum}`).className = "px-4 py-2 text-xs font-semibold rounded-lg transition-all shadow-sm bg-slate-50 text-slate-400 hover:text-slate-600 border border-slate-200/40";
+                
+                // Hide header bar
+                document.getElementById(`headerCol${colNum}`).style.display = "none";
+            } else {
+                // Show action validation: Maximum 2 columns can be active simultaneously
+                if (appState.activeColumns.length >= 2) {
+                    showAlert("Maximum limit reached. You can only view up to two columns at a time. Collapse another column to view this one.");
+                    return;
+                }
+                // Show column elements
+                appState.activeColumns.push(colNum);
+                document.getElementById(`tabBtn${colNum}`).className = "px-4 py-2 text-xs font-semibold rounded-lg transition-all shadow-sm bg-white text-slate-800 border border-slate-200/50 ring-1 ring-slate-100";
+                
+                // Show header bar
+                document.getElementById(`headerCol${colNum}`).style.display = "block";
+            }
+
+            // Sync visual active rows
+            syncColumnsDisplay();
+        }
+
+        // Updates display state of cells depending on active columns (Requirement 3f)
+        function syncColumnsDisplay() {
+            for (let colNum = 1; colNum <= 3; colNum++) {
+                const isActive = appState.activeColumns.includes(colNum);
+                
+                // Header Bar alignment
+                const header = document.getElementById(`headerCol${colNum}`);
+                header.style.display = isActive ? "block" : "none";
+
+                // Every table element cell
+                appState.tableRows.forEach((_, rowIndex) => {
+                    const cell = document.getElementById(`cell-r${rowIndex}-c${colNum}`);
+                    if (cell) {
+                        cell.style.display = isActive ? "block" : "none";
+                    }
+                });
+            }
+        }
+
+        // Apply custom font variables
+        function updateFont(colNum, fontName) {
+            document.documentElement.style.setProperty(`--col${colNum}-font`, fontName);
+        }
+
+        // Apply font size styles (Requirement 3d-iv)
+        function updateFontSize(colNum, size) {
+            document.getElementById(`col${colNum}SizeVal`).innerText = `${size}px`;
+            document.documentElement.style.setProperty(`--col${colNum}-size`, `${size}px`);
+        }
+
+        // Custom alert controls (No native alerts rule)
+        function showAlert(msg) {
+            const overlay = document.getElementById("customAlert");
+            const box = document.getElementById("customAlertBox");
+            document.getElementById("customAlertText").innerText = msg;
+            
+            overlay.classList.remove("opacity-0", "pointer-events-none");
+            box.classList.remove("scale-95");
+            box.classList.add("scale-100");
+        }
+
+        // Close Alert Custom Modal Window
+        function closeAlert() {
+            const overlay = document.getElementById("customAlert");
+            const box = document.getElementById("customAlertBox");
+            
+            overlay.classList.add("opacity-0", "pointer-events-none");
+            box.classList.remove("scale-100");
+            box.classList.add("scale-95");
+        }
+
+        // Settings slide-over display toggles
+        function toggleSettings(open) {
+            const overlay = document.getElementById("settingsOverlay");
+            const panel = document.getElementById("settingsContent");
+            
+            if (open) {
+                overlay.classList.remove("opacity-0", "pointer-events-none");
+                panel.classList.remove("translate-x-full");
+            } else {
+                overlay.classList.add("opacity-0", "pointer-events-none");
+                panel.classList.add("translate-x-full");
+            }
+        }
+
+        // Close the settings panel when clicking anywhere on the overlay backdrop outside of the panel (Requirement click-outside-to-close)
+        document.getElementById("settingsOverlay").addEventListener("click", (event) => {
+            if (event.target === document.getElementById("settingsOverlay")) {
+                toggleSettings(false);
+            }
+        });
+
+        // Mock Sandbox Data simulation if fetching cannot bypass CORS or credentials
+        function loadMockData() {
+            const mockMatrix = [
+                ["https://www.google.com", "Simulated Interactive Dashboard"], // Row 1 (A1: Home URL, B1: Title)
+                ["Technical Overview Content", "Financial Indicators Content", "Growth Projection Content"], // Row 2 (Top row headers)
+                ["Dev Specs", "Ledger Data", "Marketing Plans"], // Row 3 (A3, B3, C3: tab buttons text)
+                ["#ffffff", "#f8fafc", "#e0f2fe"], // Row 4 (Background choices)
+                ["#000000", "#1e3a8a", "#047857"], // Row 5 (Font color choices - defaulting to Black option for Col 1)
+                ["ui-sans-serif", "ui-serif", "Courier New"], // Row 6 (Data A6/B6/C6 & font family choice 0)
+                ["System Font B", "Georgia Style", "monospace"], // Row 7 (Data A7/B7/C7 & font family choice 1)
+                ["Modern Sans C", "Garamond Serif", "Lucida Console"], // Row 8 (Data A8/B8/C8 & font family choice 2)
+                
+                // Content rows start here at index 8 (Row 9)
+                ["Engine Architecture V3.1.2 is fully deployed and configured to support local dynamic rendering layouts.", "Total Assets reported increase to $1,429,000 as of the last audited quarter closure report.", "Ad campaign conversions grew by 22% over our targets, showcasing high visual performance."],
+                ["API latencies were lowered by an average of 14ms across the load balancers following cache upgrades.", "Internal operating expenditures remain inside standard limits, tracking under initial allocations.", "Expansion strategies into localized regional nodes are greenlit for upcoming product iterations."],
+                ["Security patches applied to database clusters successfully passed compliance verification.", "Operational net cash flow yields consistent progress aligned to year-over-year targets.", "User engagement score reached an all-time record on the unified platform experience."],
+                ["Next sprint planning schedules prioritized resolving edge cases regarding responsive layouts.", "Strategic growth indicators project potential acceleration heading into the final financial quarter.", "Interactive media assets delivered an outstanding retention metric among targeted user cohorts."],
+                ["Deployment pipelines have been optimized with modern containerization workflows.", "Venture development benchmarks verified standard operating metrics across active operational divisions.", "Brand consistency checks were validated to maintain high design standards across channels."]
+            ];
+
+            parseSheetBeta(mockMatrix);
+            renderWorkspace();
+
+            // Set active columns count initial default (for mock up, let's start with 2 active)
+            appState.activeColumns = [1, 2];
+            document.getElementById("tabBtn3").className = "px-4 py-2 text-xs font-semibold rounded-lg transition-all shadow-sm bg-slate-50 text-slate-400 hover:text-slate-600 border border-slate-200/40";
+            syncColumnsDisplay();
+
+            document.getElementById("loader").classList.add("opacity-0", "pointer-events-none");
+        }
+
+        // Run data pipeline automatically on load
+        window.addEventListener("DOMContentLoaded", () => {
+            runPipeline();
+        });
+    </script>
+</body>
+</html>
