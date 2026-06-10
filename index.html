@@ -166,7 +166,7 @@
 
     <!-- Synchronized Text Grid Rows Viewport (Requirement 3f) -->
     <!-- Placing rows inside a single outer scrollable container guarantees 100% synchronized vertical scrolling -->
-    <main class="flex-1 overflow-y-auto w-full">
+    <main id="mainScrollContainer" class="flex-1 overflow-y-auto w-full">
         <div class="max-w-7xl mx-auto px-4 py-4">
             <div id="tableBody" class="flex flex-col gap-0.5 rounded-2xl overflow-hidden border border-slate-200/60 shadow-sm sync-bg">
                 <!-- Dynamically populated via sheets -->
@@ -296,6 +296,9 @@
     <script>
         // Target Sheet pointer location (Sheet Alpha)
         const MASTER_SHEET_CSV = "https://docs.google.com/spreadsheets/d/1tp8aCnchL3QIJiZMKAduJJvehSNG2vIJ2Jfnx7qcs-Q/export?format=csv";
+
+        // Scroll Tracking active flag (prevents jumps during layout construction from overwriting position state)
+        let isScrollTrackingReady = false;
 
         // Application State State-machine
         let appState = {
@@ -536,6 +539,9 @@
                 }
             }
             syncColumnsDisplay();
+
+            // Restore scroll/reading row position on page refresh
+            restoreScrollPosition();
         }
 
         // Populates selector menus under the slide-over settings panel
@@ -720,6 +726,48 @@
                 toggleSettings(false);
             }
         });
+
+        // Track and persist the top-most visible reading row
+        const scrollContainer = document.getElementById("mainScrollContainer");
+        scrollContainer.addEventListener("scroll", () => {
+            if (!isScrollTrackingReady) return;
+
+            const rows = document.querySelectorAll("#tableBody > [data-row-index]");
+            const containerTop = scrollContainer.getBoundingClientRect().top;
+            let currentReadingIndex = null;
+
+            for (let row of rows) {
+                const rect = row.getBoundingClientRect();
+                // Find the first row whose bottom edge is past the viewport's top threshold
+                if (rect.bottom >= containerTop + 8) {
+                    currentReadingIndex = row.dataset.rowIndex;
+                    break;
+                }
+            }
+
+            if (currentReadingIndex !== null) {
+                localStorage.setItem("collapsible_columns_reading_row_index", currentReadingIndex);
+            }
+        });
+
+        // Restore reader's reading state cleanly
+        function restoreScrollPosition() {
+            const savedIndex = localStorage.getItem("collapsible_columns_reading_row_index");
+            if (savedIndex !== null) {
+                const targetRow = document.querySelector(`[data-row-index="${savedIndex}"]`);
+                if (targetRow) {
+                    // Small timeout ensures browser completes height and layout recalculation
+                    setTimeout(() => {
+                        targetRow.scrollIntoView({ block: 'start', behavior: 'instant' });
+                        // Position restored safely, enable real-time tracking
+                        isScrollTrackingReady = true;
+                    }, 100);
+                    return;
+                }
+            }
+            // If no saved index was found, enable tracking immediately
+            isScrollTrackingReady = true;
+        }
 
         // Mock Sandbox Data simulation if fetching cannot bypass CORS or credentials
         function loadMockData() {
