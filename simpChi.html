@@ -12,9 +12,10 @@
         <div id="status" class="text-blue-600 font-semibold text-xl">Loading Workspace...</div>
     </div>
 
-    <!-- Header: Added pr-[17px] to compensate for the content scrollbar -->
+    <!-- Header -->
     <header id="main-header" class="sticky top-0 z-40 bg-gray-50 px-6 py-0">
-        <div class="grid grid-cols-3 gap-0 w-full pr-[17px]" id="header-grid">
+        <!-- Removed hard-coded pr-[17px], will be managed by JS -->
+        <div class="grid grid-cols-3 gap-0 w-full" id="header-grid">
             <div id="header-col-1" class="bg-white border border-gray-200 rounded-l-lg py-2 px-4 text-sm font-bold"></div>
             <div id="header-col-2" class="bg-white border-t border-b border-gray-200 py-2 px-4 text-sm font-bold"></div>
             <div id="header-col-3" class="bg-white border border-gray-200 rounded-r-lg py-2 px-4 text-sm font-bold"></div>
@@ -31,10 +32,9 @@
         </div>
     </div>
 
-    <!-- Content: Standardized 3-column Grid -->
-    <main class="flex-1 overflow-auto px-6 bg-gray-50">
+    <!-- Content -->
+    <main id="main-content" class="flex-1 overflow-auto px-6 bg-gray-50">
         <div class="grid grid-cols-3 gap-0 border-l border-r border-b border-gray-200 rounded-b-lg bg-white" id="content-grid">
-            <!-- Rows injected here -->
         </div>
     </main>
 
@@ -44,24 +44,20 @@
             conditionString: "text00010001"
         };
 
-        function parseCSV(text) {
-            const result = []; let row = [], col = "", inQuotes = false;
-            for (let i = 0; i < text.length; i++) {
-                let char = text[i];
-                if (inQuotes) {
-                    if (char === '"') { if (text[i + 1] === '"') { col += '"'; i++; } else inQuotes = false; }
-                    else { col += char; }
-                } else {
-                    if (char === '"') inQuotes = true;
-                    else if (char === ',') { row.push(col); col = ""; }
-                    else if (char === '\n' || char === '\r') {
-                        if (char === '\r' && text[i + 1] === '\n') i++;
-                        row.push(col); result.push(row); row = []; col = "";
-                    } else { col += char; }
-                }
+        // Scrollbar detection logic
+        function updateHeaderPadding() {
+            const container = document.getElementById('main-content');
+            const header = document.getElementById('header-grid');
+            const hasScrollbar = container.scrollHeight > container.clientHeight;
+            
+            // Calculate scrollbar width
+            const scrollbarWidth = container.offsetWidth - container.clientWidth;
+            
+            if (hasScrollbar && scrollbarWidth > 0) {
+                header.style.paddingRight = scrollbarWidth + 'px';
+            } else {
+                header.style.paddingRight = '0px';
             }
-            if (col || row.length) { row.push(col); result.push(row); }
-            return result;
         }
 
         async function fetchWithBackoff(url, retries = 5) {
@@ -69,46 +65,40 @@
             for (let i = 0; i <= retries; i++) {
                 try {
                     const response = await fetch(url);
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    if (!response.ok) throw new Error();
                     return await response.text();
-                } catch (error) {
-                    if (i === retries) throw new Error(`Failed after ${retries} retries: ${error.message}`);
-                    await new Promise(res => setTimeout(res, delays[i]));
-                }
+                } catch (e) { if (i === retries) throw e; await new Promise(r => setTimeout(r, delays[i])); }
             }
         }
 
         async function initializeData() {
             try {
                 const registryRaw = await fetchWithBackoff(CONFIG.masterRegistry);
-                const registryData = parseCSV(registryRaw);
-                const matchedRow = registryData.find(row => row[2] && row[2].trim() === CONFIG.conditionString);
+                const registryData = registryRaw.split('\n').map(r => r.split(','));
+                const match = registryData.find(r => r[2]?.trim() === CONFIG.conditionString);
                 
-                if (!matchedRow || !matchedRow[3]) throw new Error(`Condition string "${CONFIG.conditionString}" not found.`);
-
-                let workspaceUrl = matchedRow[3].trim().replace(/\/edit.*$/, '/export?format=csv');
-                const workspaceRaw = await fetchWithBackoff(workspaceUrl);
-                const workspaceData = parseCSV(workspaceRaw);
+                const wsRaw = await fetchWithBackoff(match[3].trim().replace(/\/edit.*$/, '/export?format=csv'));
+                const data = wsRaw.split('\n').map(r => r.split(','));
 
                 document.getElementById('loading-overlay').style.display = 'none';
-                document.title = workspaceData[0][1] || 'Dashboard';
-
-                document.getElementById('header-col-1').innerText = workspaceData[1][0] || '';
-                document.getElementById('header-col-2').innerText = workspaceData[1][1] || '';
-                document.getElementById('header-col-3').innerText = workspaceData[1][2] || '';
+                ['header-col-1', 'header-col-2', 'header-col-3'].forEach((id, i) => document.getElementById(id).innerText = data[1][i] || '');
 
                 const grid = document.getElementById('content-grid');
-                for (let i = 8; i < workspaceData.length; i++) {
-                    const row = workspaceData[i];
-                    for (let idx = 0; idx < 3; idx++) {
+                for (let i = 8; i < data.length; i++) {
+                    for(let j=0; j<3; j++) {
                         const cell = document.createElement('div');
-                        cell.className = "py-4 px-4 text-sm border-b border-gray-200" + (idx < 2 ? " border-r" : "");
-                        cell.innerText = row[idx] || "";
+                        cell.className = `py-4 px-4 text-sm border-b border-gray-200 ${j < 2 ? 'border-r' : ''}`;
+                        cell.innerText = data[i][j] || "";
                         grid.appendChild(cell);
                     }
                 }
+                
+                // Set observer to detect changes and adjust alignment
+                const observer = new ResizeObserver(updateHeaderPadding);
+                observer.observe(document.getElementById('main-content'));
+                updateHeaderPadding();
             } catch (error) {
-                document.getElementById('status').innerText = `Error: ${error.message}`;
+                document.getElementById('status').innerText = `Error: Data could not be loaded.`;
             }
         }
         initializeData();
