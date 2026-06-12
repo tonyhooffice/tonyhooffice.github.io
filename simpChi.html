@@ -13,12 +13,12 @@
         <div id="status" class="text-blue-600 font-semibold text-xl">Loading Workspace...</div>
     </div>
 
-    <!-- (C)(1) Header: Aligned using px-4 py-4 to match table body -->
-    <header id="main-header" class="sticky top-0 z-40 bg-white shadow-sm border-b px-6 py-0">
+    <!-- (C)(1) Header: Flat-Card architecture, borderless and shadowless -->
+    <header id="main-header" class="sticky top-0 z-40 bg-white px-6 py-0">
         <div class="grid grid-cols-3 gap-0 w-full items-center" id="header-grid">
-            <div id="header-col-1" class="px-4 py-4 text-sm">Loading Col 1...</div>
-            <div id="header-col-2" class="px-4 py-4 text-sm">Loading Col 2...</div>
-            <div id="header-col-3" class="px-4 py-4 text-sm">Loading Col 3...</div>
+            <div id="header-col-1" class="p-4 bg-white rounded-lg text-sm">Loading Col 1...</div>
+            <div id="header-col-2" class="p-4 bg-white rounded-lg text-sm">Loading Col 2...</div>
+            <div id="header-col-3" class="p-4 bg-white rounded-lg text-sm">Loading Col 3...</div>
         </div>
     </header>
 
@@ -48,7 +48,7 @@
         </div>
     </div>
 
-    <!-- (C)(3) Content Area -->
+    <!-- (C)(3) Content Area: Elevated cards -->
     <main class="flex-1 overflow-auto p-6 bg-gray-50" id="main-scroll-area">
         <div class="grid grid-cols-3 gap-0 h-full" id="content-grid">
             <div id="col-1" class="bg-white border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200"></div>
