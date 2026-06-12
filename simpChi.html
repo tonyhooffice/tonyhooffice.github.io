@@ -6,67 +6,37 @@
     <title>Application Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="flex flex-col h-screen overflow-hidden bg-white text-gray-800 font-sans">
+<body class="flex flex-col h-screen overflow-hidden bg-gray-50 text-gray-800 font-sans">
 
-    <!-- Loading Overlay -->
     <div id="loading-overlay" class="absolute inset-0 z-50 flex items-center justify-center bg-white">
         <div id="status" class="text-blue-600 font-semibold text-xl">Loading Workspace...</div>
     </div>
 
-    <!-- (C)(1) Header: Flat-Card architecture, borderless and shadowless -->
-    <header id="main-header" class="sticky top-0 z-40 bg-white px-6 py-0">
-        <div class="grid grid-cols-3 gap-0 w-full items-center" id="header-grid">
-            <div id="header-col-1" class="p-4 bg-white rounded-lg text-sm">Loading Col 1...</div>
-            <div id="header-col-2" class="p-4 bg-white rounded-lg text-sm">Loading Col 2...</div>
-            <div id="header-col-3" class="p-4 bg-white rounded-lg text-sm">Loading Col 3...</div>
+    <!-- Header: Added pr-[17px] to compensate for the content scrollbar -->
+    <header id="main-header" class="sticky top-0 z-40 bg-gray-50 px-6 py-0">
+        <div class="grid grid-cols-3 gap-0 w-full pr-[17px]" id="header-grid">
+            <div id="header-col-1" class="bg-white border border-gray-200 rounded-l-lg py-2 px-4 text-sm font-bold"></div>
+            <div id="header-col-2" class="bg-white border-t border-b border-gray-200 py-2 px-4 text-sm font-bold"></div>
+            <div id="header-col-3" class="bg-white border border-gray-200 rounded-r-lg py-2 px-4 text-sm font-bold"></div>
         </div>
     </header>
 
-    <!-- (C)(2) & (D) Panel Bar -->
-    <div id="panel-bar" class="bg-gray-50 border-b px-6 py-2 flex justify-between items-center z-30">
+    <div id="panel-bar" class="bg-gray-50 border-b px-6 py-1 flex justify-between items-center z-30">
         <div class="flex items-center gap-6">
             <div id="col-tabs" class="flex gap-2">
-                <button id="tab-1" class="px-4 py-1 bg-white border shadow-sm hover:bg-gray-100 rounded font-medium transition-colors !text-[12px]">Col 1</button>
-                <button id="tab-2" class="px-4 py-1 bg-white border shadow-sm hover:bg-gray-100 rounded font-medium transition-colors !text-[12px]">Col 2</button>
-                <button id="tab-3" class="px-4 py-1 bg-white border shadow-sm hover:bg-gray-100 rounded font-medium transition-colors !text-[12px]">Col 3</button>
+                <button id="tab-1" class="px-3 py-0.5 bg-white border shadow-sm rounded font-medium !text-[12px]">Col 1</button>
+                <button id="tab-2" class="px-3 py-0.5 bg-white border shadow-sm rounded font-medium !text-[12px]">Col 2</button>
+                <button id="tab-3" class="px-3 py-0.5 bg-white border shadow-sm rounded font-medium !text-[12px]">Col 3</button>
             </div>
         </div>
-        
-        <div class="flex items-center gap-3">
-            <button id="home-btn" class="p-2 hover:bg-gray-200 rounded text-gray-700 transition-colors" title="Home">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                </svg>
-            </button>
-            <button id="settings-trigger" class="p-2 hover:bg-gray-200 rounded text-gray-700 transition-colors" title="Settings">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2-2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                </svg>
-            </button>
-        </div>
     </div>
 
-    <!-- (C)(3) Content Area: Elevated cards -->
-    <main class="flex-1 overflow-auto p-6 bg-gray-50" id="main-scroll-area">
-        <div class="grid grid-cols-3 gap-0 h-full" id="content-grid">
-            <div id="col-1" class="bg-white border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200"></div>
-            <div id="col-2" class="bg-white border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200"></div>
-            <div id="col-3" class="bg-white border border-gray-200 rounded-lg shadow-sm divide-y divide-gray-200"></div>
+    <!-- Content: Standardized 3-column Grid -->
+    <main class="flex-1 overflow-auto px-6 bg-gray-50">
+        <div class="grid grid-cols-3 gap-0 border-l border-r border-b border-gray-200 rounded-b-lg bg-white" id="content-grid">
+            <!-- Rows injected here -->
         </div>
     </main>
-
-    <!-- Settings Slide-over -->
-    <div id="settings-panel" class="slide-over hidden-panel fixed top-0 right-0 h-full w-80 bg-white shadow-xl z-50 p-6 border-l transition-transform duration-300">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="font-bold">Settings</h2>
-            <button id="close-settings" class="text-gray-500 hover:text-gray-800">✕ Close</button>
-        </div>
-        <div id="settings-content" class="space-y-6">
-            <p class="text-gray-400 text-sm">No settings configured yet.</p>
-        </div>
-    </div>
 
     <script>
         const CONFIG = {
@@ -75,23 +45,18 @@
         };
 
         function parseCSV(text) {
-            const result = [];
-            let row = [], col = "", inQuotes = false;
+            const result = []; let row = [], col = "", inQuotes = false;
             for (let i = 0; i < text.length; i++) {
                 let char = text[i];
                 if (inQuotes) {
-                    if (char === '"') {
-                        if (text[i + 1] === '"') { col += '"'; i++; }
-                        else inQuotes = false;
-                    } else { col += char; }
+                    if (char === '"') { if (text[i + 1] === '"') { col += '"'; i++; } else inQuotes = false; }
+                    else { col += char; }
                 } else {
                     if (char === '"') inQuotes = true;
                     else if (char === ',') { row.push(col); col = ""; }
                     else if (char === '\n' || char === '\r') {
                         if (char === '\r' && text[i + 1] === '\n') i++;
-                        row.push(col);
-                        result.push(row);
-                        row = []; col = "";
+                        row.push(col); result.push(row); row = []; col = "";
                     } else { col += char; }
                 }
             }
@@ -114,7 +79,6 @@
         }
 
         async function initializeData() {
-            const statusEl = document.getElementById('status');
             try {
                 const registryRaw = await fetchWithBackoff(CONFIG.masterRegistry);
                 const registryData = parseCSV(registryRaw);
@@ -133,41 +97,18 @@
                 document.getElementById('header-col-2').innerText = workspaceData[1][1] || '';
                 document.getElementById('header-col-3').innerText = workspaceData[1][2] || '';
 
-                document.getElementById('home-btn').onclick = () => {
-                    const url = workspaceData[0][0];
-                    if(url && url.startsWith('http')) window.open(url, '_blank');
-                };
-
-                const colTitles = [
-                    workspaceData[2][0] || 'Column 1', 
-                    workspaceData[2][1] || 'Column 2', 
-                    workspaceData[2][2] || 'Column 3'
-                ];
-
-                for(let i=1; i<=3; i++) {
-                    document.getElementById(`tab-${i}`).innerText = colTitles[i-1];
-                }
-
-                const rowClass = "p-4 text-sm";
-                const col1El = document.getElementById('col-1');
-                const col2El = document.getElementById('col-2');
-                const col3El = document.getElementById('col-3');
-
+                const grid = document.getElementById('content-grid');
                 for (let i = 8; i < workspaceData.length; i++) {
                     const row = workspaceData[i];
-                    if(!row) continue;
-                    if(row[0]) col1El.innerHTML += `<div class="${rowClass}">${row[0]}</div>`;
-                    if(row[1]) col2El.innerHTML += `<div class="${rowClass}">${row[1]}</div>`;
-                    if(row[2]) col3El.innerHTML += `<div class="${rowClass}">${row[2]}</div>`;
+                    for (let idx = 0; idx < 3; idx++) {
+                        const cell = document.createElement('div');
+                        cell.className = "py-4 px-4 text-sm border-b border-gray-200" + (idx < 2 ? " border-r" : "");
+                        cell.innerText = row[idx] || "";
+                        grid.appendChild(cell);
+                    }
                 }
-
-                const settingsPanel = document.getElementById('settings-panel');
-                document.getElementById('settings-trigger').onclick = () => settingsPanel.classList.remove('hidden-panel');
-                document.getElementById('close-settings').onclick = () => settingsPanel.classList.add('hidden-panel');
-
             } catch (error) {
-                statusEl.innerText = `Error loading: ${error.message}`;
-                statusEl.className = "text-red-600 font-bold text-xl p-6";
+                document.getElementById('status').innerText = `Error: ${error.message}`;
             }
         }
         initializeData();
