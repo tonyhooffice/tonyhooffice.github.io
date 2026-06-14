@@ -75,7 +75,7 @@
                                     <span id="font-size-val" class="text-xs text-gray-600 font-bold">16px</span>
                                     <span>26px</span>
                                 </div>
-                                <input type="range" min="10" max="26" value="16" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer" oninput="updateFontSize(this.value)">
+                                <input type="range" id="font-size-slider" min="10" max="26" value="16" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer" oninput="updateFontSize(this.value)">
                             </div>
                             <div class="w-full flex flex-col gap-1 mt-2">
                                 <select id="font-select-0" onchange="applyFont(0, this.value)" class="w-full text-xs p-1 border rounded text-black"></select>
@@ -96,11 +96,6 @@
     </main>
 
     <script>
-        // Track the current color states
-        let activeFontColor = "text-custom-1";
-        let activeBackgroundColor = "bg-custom-1";
-
-        // Map class names to actual hex codes
         const colorMap = {
             "bg-custom-1": "#093145",
             "bg-custom-2": "#ffffff",
@@ -109,6 +104,11 @@
             "text-custom-2": "#000000",
             "text-custom-3": "#ffffff"
         };
+
+        let activeFontColor = localStorage.getItem('activeFontColor') || "text-custom-1";
+        let activeBackgroundColor = localStorage.getItem('activeBackgroundColor') || "bg-custom-1";
+        let activeFontSize = localStorage.getItem('activeFontSize') || "16";
+        let columnVisibility = JSON.parse(localStorage.getItem('columnVisibility')) || [true, true, true];
 
         const matrixContentTexts = [
             ["EnglishPassage01", "繁體中文段落01", "简体中文段落01"],
@@ -133,18 +133,37 @@
             container.innerHTML = '';
             matrixContentTexts.forEach((row, rowIndex) => {
                 const rowDiv = document.createElement('div');
-                rowDiv.className = `grid grid-cols-3 ${rowIndex < matrixContentTexts.length - 1 ? 'border-b border-gray-200' : ''}`;
+                const visibleCount = columnVisibility.filter(Boolean).length;
+                rowDiv.className = `grid grid-cols-${visibleCount} ${rowIndex < matrixContentTexts.length - 1 ? 'border-b border-gray-200' : ''}`;
                 
                 row.forEach((text, colIndex) => {
                     const cell = document.createElement('div');
-                    cell.className = `pt-1 pb-1 px-4 ${colIndex < 2 ? 'border-r border-gray-200' : ''} font-col-${colIndex}`;
+                    cell.className = `pt-1 pb-1 px-4 ${colIndex < 2 ? 'border-r border-gray-200' : ''} font-col-${colIndex} ${columnVisibility[colIndex] ? '' : 'hidden'}`;
                     cell.textContent = text;
+                    cell.style.fontSize = activeFontSize + 'px';
                     rowDiv.appendChild(cell);
                 });
                 container.appendChild(rowDiv);
             });
+            
+            // Set header grid
+            const headerGrid = document.getElementById('header-grid');
+            const headerItems = headerGrid.querySelectorAll('.col-item');
+            headerGrid.className = `grid grid-cols-${columnVisibility.filter(Boolean).length} gap-0 w-full border border-transparent rounded-lg overflow-hidden bg-transparent transition-all duration-300`;
+            headerItems.forEach((item, idx) => {
+                item.className = `col-item pt-2 pb-0 px-4 text-sm border-r border-transparent font-col-${idx} ${columnVisibility[idx] ? '' : 'hidden'}`;
+            });
         }
+        
+        function applySavedSettings() {
+            const body = document.getElementById('body');
+            body.classList.add(activeBackgroundColor, activeFontColor);
+            document.getElementById('font-size-slider').value = activeFontSize;
+            document.getElementById('font-size-val').innerText = activeFontSize + 'px';
+        }
+
         renderContent();
+        applySavedSettings();
 
         const matrixFontTypes = [
             ["Monospace", "微軟正黑體", "微软正黑体"],
@@ -196,70 +215,49 @@
         });
 
         function setBgColor(colorClass) {
-            // Debug check for hex values
             const selectedBackgroundColorHex = colorMap[colorClass];
             const activeFontColorHex = colorMap[activeFontColor];
-            //alert("Selected Background Hex: " + selectedBackgroundColorHex + "\nActive Font Hex: " + activeFontColorHex);
 
-            // If the selected background color is the same as the font, stop
-            if (selectedBackgroundColorHex === activeFontColorHex) {
-                return;
-            }
+            if (selectedBackgroundColorHex === activeFontColorHex) return;
+
             const body = document.getElementById('body');
             body.classList.remove(stringBackgroundColor1, stringBackgroundColor2, stringBackgroundColor3);
             body.classList.add(colorClass);
             
-            // Update tracking variable
             activeBackgroundColor = colorClass;
+            localStorage.setItem('activeBackgroundColor', colorClass);
         }
 
         function setFontColor(colorClass) {
-            // Debug check for hex values
             const selectedFontColorHex = colorMap[colorClass];
             const activeBackgroundColorHex = colorMap[activeBackgroundColor];
-            //alert("Selected Font Hex: " + selectedFontColorHex + "\nActive Background Hex: " + activeBackgroundColorHex);
 
-            // If the selected font color is the same as the background, stop
-            if (selectedFontColorHex === activeBackgroundColorHex) {
-                return;
-            }
+            if (selectedFontColorHex === activeBackgroundColorHex) return;
 
             const body = document.getElementById('body');
             body.classList.remove(stringFontColor1, stringFontColor2, stringFontColor3);
             body.classList.add(colorClass);
             
-            // Update tracking variable
             activeFontColor = colorClass;
+            localStorage.setItem('activeFontColor', colorClass);
         }
 
         function updateFontSize(value) {
             document.getElementById('font-size-val').innerText = value + 'px';
             document.querySelectorAll('#content-grid .grid > div').forEach(el => el.style.fontSize = value + 'px');
+            activeFontSize = value;
+            localStorage.setItem('activeFontSize', value);
         }
 
         function toggleCol(index) {
-            const visibleCols = document.querySelectorAll('#header-grid .col-item:not(.hidden)');
-            const targetCol = document.querySelectorAll('#header-grid .col-item')[index];
+            const visibleCols = columnVisibility.filter(Boolean).length;
+            const targetVisible = columnVisibility[index];
             
-            if (visibleCols.length === 1 && !targetCol.classList.contains('hidden')) {
-                return;
-            }
+            if (visibleCols === 1 && targetVisible) return;
 
-            const rows = document.querySelectorAll('#content-grid > div');
-            rows.forEach(row => {
-                row.children[index].classList.toggle('hidden');
-            });
-            
-            const headerCols = document.querySelectorAll('#header-grid .col-item');
-            headerCols[index].classList.toggle('hidden');
-
-            const newVisibleCount = document.querySelectorAll('#header-grid .col-item:not(.hidden)').length;
-            const colClass = `grid-cols-${newVisibleCount}`;
-
-            document.getElementById('header-grid').className = `grid gap-0 w-full border border-transparent rounded-lg overflow-hidden bg-transparent transition-all duration-300 ${colClass}`;
-            rows.forEach(row => {
-                row.className = `grid border-b border-gray-200 last:border-b-0 ${colClass}`;
-            });
+            columnVisibility[index] = !targetVisible;
+            localStorage.setItem('columnVisibility', JSON.stringify(columnVisibility));
+            renderContent();
         }
     </script>
 </body>
