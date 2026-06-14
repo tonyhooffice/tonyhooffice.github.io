@@ -3,105 +3,264 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application Dashboard</title>
+    <title>Dynamic Header Layout</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #settings-panel {
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        #settings-panel.hidden {
+            display: none;
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        .bg-custom-1 { background-color: #093145; }
+        .bg-custom-2 { background-color: #ffffff; }
+        .bg-custom-3 { background-color: #000000; }
+        .text-custom-1 { color: #FFD700; }
+        .text-custom-2 { color: #000000; }
+        .text-custom-3 { color: #ffffff; }
+        
+        input[type=range] { accent-color: #94a3b8; }
+    </style>
 </head>
-<body class="flex flex-col h-screen overflow-hidden bg-gray-50 text-gray-800 font-sans">
+<body class="bg-custom-1 text-custom-1 transition-colors duration-300" id="body">
 
-    <div id="loading-overlay" class="absolute inset-0 z-50 flex items-center justify-center bg-white">
-        <div id="status" class="text-blue-600 font-semibold text-xl">Loading Workspace...</div>
-    </div>
+    <header class="sticky top-0 w-full z-20 bg-inherit">
+        <div class="max-w-4xl mx-auto bg-inherit px-4">
+            <div class="grid grid-cols-3 gap-0 w-full border border-transparent rounded-lg overflow-hidden bg-transparent transition-all duration-300" id="header-grid">
+                <div class="col-item pt-2 pb-0 px-4 text-sm border-r border-transparent font-col-0">BookName<br>AuthorName</div>
+                <div class="col-item pt-2 pb-0 px-4 text-sm border-r border-transparent font-col-1">繁體中文書名<br>作者</div>
+                <div class="col-item pt-2 pb-0 px-4 text-sm font-col-2">简体中文书名<br>作者</div>
+            </div>
 
-    <!-- Header -->
-    <header id="main-header" class="sticky top-0 z-40 bg-gray-50 px-6 py-0">
-        <!-- Removed hard-coded pr-[17px], will be managed by JS -->
-        <div class="grid grid-cols-3 gap-0 w-full" id="header-grid">
-            <div id="header-col-1" class="bg-white border border-gray-200 rounded-l-lg py-2 px-4 text-sm font-bold"></div>
-            <div id="header-col-2" class="bg-white border-t border-b border-gray-200 py-2 px-4 text-sm font-bold"></div>
-            <div id="header-col-3" class="bg-white border border-gray-200 rounded-r-lg py-2 px-4 text-sm font-bold"></div>
+            <div class="relative sticky top-[52px] bg-inherit pt-0 pb-1 border-b border-gray-120">
+                <div class="flex items-center justify-between max-w-4xl mx-auto px-4">
+                    <div class="flex gap-2">
+                        <button onclick="toggleCol(0)" class="px-2 py-1 bg-transparent border rounded text-xs hover:bg-gray-100 transition-colors">Eng</button>
+                        <button onclick="toggleCol(1)" class="px-2 py-1 bg-transparent border rounded text-xs hover:bg-gray-100 transition-colors">繁</button>
+                        <button onclick="toggleCol(2)" class="px-2 py-1 bg-transparent border rounded text-xs hover:bg-gray-100 transition-colors">简</button>
+                    </div>
+                    
+                    <div class="flex gap-1 items-center">
+                        <button onclick="window.open(stringHomeUrl, '_blank')" class="p-1 hover:bg-gray-200 rounded transition-colors" title="Home">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                        </button>
+                        <button onclick="toggleSettings()" id="settings-toggle-btn" class="p-1 hover:bg-gray-200 rounded transition-colors" title="Settings">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </button>
+                    </div>
+
+                    <div id="settings-panel" class="hidden absolute right-4 top-full mt-2 w-[220px] bg-white border border-gray-200 rounded-xl shadow-lg p-3 z-30">
+                        <div class="flex justify-end mb-2 h-4">
+                            <button onclick="toggleSettings()" class="text-gray-400 hover:bg-gray-100 rounded">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+                        
+                        <div class="flex flex-col gap-3 items-center">
+                            <div class="flex gap-6">
+                                <button onclick="setBgColor(stringBackgroundColor1)" class="w-8 h-8 rounded-lg bg-custom-1 border border-gray-200"></button>
+                                <button onclick="setBgColor(stringBackgroundColor2)" class="w-8 h-8 rounded-lg bg-custom-2 border border-gray-200"></button>
+                                <button onclick="setBgColor(stringBackgroundColor3)" class="w-8 h-8 rounded-lg bg-custom-3 border border-gray-200"></button>
+                            </div>
+                            <div class="flex gap-6">
+                                <button onclick="setFontColor(stringFontColor1)" class="w-8 h-8 rounded-full border border-gray-200 text-custom-1 bg-current"></button>
+                                <button onclick="setFontColor(stringFontColor2)" class="w-8 h-8 rounded-full border border-gray-200 text-custom-2 bg-current"></button>
+                                <button onclick="setFontColor(stringFontColor3)" class="w-8 h-8 rounded-full border border-gray-200 text-custom-3 bg-current"></button>
+                            </div>
+                            <div class="w-full pt-1">
+                                <div class="flex justify-between text-[8px] text-gray-400">
+                                    <span>10px</span>
+                                    <span id="font-size-val" class="text-xs text-gray-600 font-bold">16px</span>
+                                    <span>26px</span>
+                                </div>
+                                <input type="range" min="10" max="26" value="16" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer" oninput="updateFontSize(this.value)">
+                            </div>
+                            <div class="w-full flex flex-col gap-1 mt-2">
+                                <select id="font-select-0" onchange="applyFont(0, this.value)" class="w-full text-xs p-1 border rounded text-black"></select>
+                                <select id="font-select-1" onchange="applyFont(1, this.value)" class="w-full text-xs p-1 border rounded text-black"></select>
+                                <select id="font-select-2" onchange="applyFont(2, this.value)" class="w-full text-xs p-1 border rounded text-black"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </header>
 
-    <div id="panel-bar" class="bg-gray-50 border-b px-6 py-1 flex justify-between items-center z-30">
-        <div class="flex items-center gap-6">
-            <div id="col-tabs" class="flex gap-2">
-                <button id="tab-1" class="px-3 py-0.5 bg-white border shadow-sm rounded font-medium !text-[12px]">Col 1</button>
-                <button id="tab-2" class="px-3 py-0.5 bg-white border shadow-sm rounded font-medium !text-[12px]">Col 2</button>
-                <button id="tab-3" class="px-3 py-0.5 bg-white border shadow-sm rounded font-medium !text-[12px]">Col 3</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Content -->
-    <main id="main-content" class="flex-1 overflow-auto px-6 bg-gray-50">
-        <div class="grid grid-cols-3 gap-0 border-l border-r border-b border-gray-200 rounded-b-lg bg-white" id="content-grid">
+    <main class="w-full max-w-4xl mx-auto mt-0 pb-10 px-4">
+        <div class="border border-gray-200 rounded-lg overflow-hidden bg-transparent" id="content-grid">
+            <!-- Dynamic Content -->
         </div>
     </main>
 
     <script>
-        const CONFIG = {
-            masterRegistry: "https://docs.google.com/spreadsheets/d/1tp8aCnchL3QIJiZMKAduJJvehSNG2vIJ2Jfnx7qcs-Q/export?format=csv",
-            conditionString: "text00010001"
+        // Track the current color states
+        let activeFontColor = "text-custom-1";
+        let activeBackgroundColor = "bg-custom-1";
+
+        // Map class names to actual hex codes
+        const colorMap = {
+            "bg-custom-1": "#093145",
+            "bg-custom-2": "#ffffff",
+            "bg-custom-3": "#000000",
+            "text-custom-1": "#FFD700",
+            "text-custom-2": "#000000",
+            "text-custom-3": "#ffffff"
         };
 
-        // Scrollbar detection logic
-        function updateHeaderPadding() {
-            const container = document.getElementById('main-content');
-            const header = document.getElementById('header-grid');
-            const hasScrollbar = container.scrollHeight > container.clientHeight;
-            
-            // Calculate scrollbar width
-            const scrollbarWidth = container.offsetWidth - container.clientWidth;
-            
-            if (hasScrollbar && scrollbarWidth > 0) {
-                header.style.paddingRight = scrollbarWidth + 'px';
-            } else {
-                header.style.paddingRight = '0px';
-            }
-        }
+        const matrixContentTexts = [
+            ["EnglishPassage01", "繁體中文段落01", "简体中文段落01"],
+            ["EnglishPassage02", "繁體中文段落02", "简体中文段落02"],
+            ["EnglishPassage03", "繁體中文段落03", "简体中文段落03"],
+            ["EnglishPassage04", "繁體中文段落04", "简体中文段落04"],
+            ["EnglishPassage05", "繁體中文段落05", "简体中文段落05"],
+            ["EnglishPassage06", "繁體中文段落06", "简体中文段落06"],
+            ["EnglishPassage07", "繁體中文段落07", "简体中文段落07"],
+            ["EnglishPassage08", "繁體中文段落08", "简体中文段落08"],
+            ["EnglishPassage09", "繁體中文段落09", "简体中文段落09"],
+            ["EnglishPassage10", "繁體中文段落10", "简体中文段落10"],
+            ["EnglishPassage11", "繁體中文段落11", "简体中文段落11"],
+            ["EnglishPassage12", "繁體中文段落12", "简体中文段落12"],
+            ["EnglishPassage13", "繁體中文段落13", "简体中文段落13"],
+            ["EnglishPassage14", "繁體中文段落14", "简体中文段落14"],
+            ["EnglishPassage15", "繁體中文段落15", "简体中文段落15"]
+        ];
 
-        async function fetchWithBackoff(url, retries = 5) {
-            const delays = [1000, 2000, 4000, 8000, 16000];
-            for (let i = 0; i <= retries; i++) {
-                try {
-                    const response = await fetch(url);
-                    if (!response.ok) throw new Error();
-                    return await response.text();
-                } catch (e) { if (i === retries) throw e; await new Promise(r => setTimeout(r, delays[i])); }
-            }
-        }
-
-        async function initializeData() {
-            try {
-                const registryRaw = await fetchWithBackoff(CONFIG.masterRegistry);
-                const registryData = registryRaw.split('\n').map(r => r.split(','));
-                const match = registryData.find(r => r[2]?.trim() === CONFIG.conditionString);
+        function renderContent() {
+            const container = document.getElementById('content-grid');
+            container.innerHTML = '';
+            matrixContentTexts.forEach((row, rowIndex) => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = `grid grid-cols-3 ${rowIndex < matrixContentTexts.length - 1 ? 'border-b border-gray-200' : ''}`;
                 
-                const wsRaw = await fetchWithBackoff(match[3].trim().replace(/\/edit.*$/, '/export?format=csv'));
-                const data = wsRaw.split('\n').map(r => r.split(','));
+                row.forEach((text, colIndex) => {
+                    const cell = document.createElement('div');
+                    cell.className = `pt-1 pb-1 px-4 ${colIndex < 2 ? 'border-r border-gray-200' : ''} font-col-${colIndex}`;
+                    cell.textContent = text;
+                    rowDiv.appendChild(cell);
+                });
+                container.appendChild(rowDiv);
+            });
+        }
+        renderContent();
 
-                document.getElementById('loading-overlay').style.display = 'none';
-                ['header-col-1', 'header-col-2', 'header-col-3'].forEach((id, i) => document.getElementById(id).innerText = data[1][i] || '');
+        const matrixFontTypes = [
+            ["Monospace", "微軟正黑體", "微软正黑体"],
+            ["Calibri", "標楷體", "标楷体"],
+            ["Sans-Serif", "新細明體", "新细明体"]
+        ];
 
-                const grid = document.getElementById('content-grid');
-                for (let i = 8; i < data.length; i++) {
-                    for(let j=0; j<3; j++) {
-                        const cell = document.createElement('div');
-                        cell.className = `py-4 px-4 text-sm border-b border-gray-200 ${j < 2 ? 'border-r' : ''}`;
-                        cell.innerText = data[i][j] || "";
-                        grid.appendChild(cell);
-                    }
+        let stringFontType1 = matrixFontTypes[0][0];
+        let stringFontType2 = matrixFontTypes[0][1];
+        let stringFontType3 = matrixFontTypes[0][2];
+
+        function initFontSelects() {
+            [0, 1, 2].forEach((col, idx) => {
+                const select = document.getElementById(`font-select-${idx}`);
+                matrixFontTypes.forEach(row => {
+                    const opt = document.createElement("option");
+                    opt.value = row[idx];
+                    opt.textContent = row[idx];
+                    select.appendChild(opt);
+                });
+                select.value = [stringFontType1, stringFontType2, stringFontType3][idx];
+            });
+        }
+        initFontSelects();
+
+        function applyFont(colIdx, font) {
+            document.querySelectorAll(`.font-col-${colIdx}`).forEach(el => el.style.fontFamily = font);
+        }
+
+        const stringHomeUrl = "https://www.google.com";
+        const stringBackgroundColor1 = "bg-custom-1";
+        const stringBackgroundColor2 = "bg-custom-2";
+        const stringBackgroundColor3 = "bg-custom-3";
+        const stringFontColor1 = "text-custom-1";
+        const stringFontColor2 = "text-custom-2";
+        const stringFontColor3 = "text-custom-3";
+
+        function toggleSettings() { document.getElementById('settings-panel').classList.toggle('hidden'); }
+        
+        document.addEventListener('click', function(event) {
+            const settingsPanel = document.getElementById('settings-panel');
+            const settingsButton = document.getElementById('settings-toggle-btn');
+            
+            if (!settingsPanel.contains(event.target) && !settingsButton.contains(event.target)) {
+                if (!settingsPanel.classList.contains('hidden')) {
+                    settingsPanel.classList.add('hidden');
                 }
-                
-                // Set observer to detect changes and adjust alignment
-                const observer = new ResizeObserver(updateHeaderPadding);
-                observer.observe(document.getElementById('main-content'));
-                updateHeaderPadding();
-            } catch (error) {
-                document.getElementById('status').innerText = `Error: Data could not be loaded.`;
             }
+        });
+
+        function setBgColor(colorClass) {
+            // Debug check for hex values
+            const selectedBackgroundColorHex = colorMap[colorClass];
+            const activeFontColorHex = colorMap[activeFontColor];
+            //alert("Selected Background Hex: " + selectedBackgroundColorHex + "\nActive Font Hex: " + activeFontColorHex);
+
+            // If the selected background color is the same as the font, stop
+            if (selectedBackgroundColorHex === activeFontColorHex) {
+                return;
+            }
+            const body = document.getElementById('body');
+            body.classList.remove(stringBackgroundColor1, stringBackgroundColor2, stringBackgroundColor3);
+            body.classList.add(colorClass);
+            
+            // Update tracking variable
+            activeBackgroundColor = colorClass;
         }
-        initializeData();
+
+        function setFontColor(colorClass) {
+            // Debug check for hex values
+            const selectedFontColorHex = colorMap[colorClass];
+            const activeBackgroundColorHex = colorMap[activeBackgroundColor];
+            //alert("Selected Font Hex: " + selectedFontColorHex + "\nActive Background Hex: " + activeBackgroundColorHex);
+
+            // If the selected font color is the same as the background, stop
+            if (selectedFontColorHex === activeBackgroundColorHex) {
+                return;
+            }
+
+            const body = document.getElementById('body');
+            body.classList.remove(stringFontColor1, stringFontColor2, stringFontColor3);
+            body.classList.add(colorClass);
+            
+            // Update tracking variable
+            activeFontColor = colorClass;
+        }
+
+        function updateFontSize(value) {
+            document.getElementById('font-size-val').innerText = value + 'px';
+            document.querySelectorAll('#content-grid .grid > div').forEach(el => el.style.fontSize = value + 'px');
+        }
+
+        function toggleCol(index) {
+            const visibleCols = document.querySelectorAll('#header-grid .col-item:not(.hidden)');
+            const targetCol = document.querySelectorAll('#header-grid .col-item')[index];
+            
+            if (visibleCols.length === 1 && !targetCol.classList.contains('hidden')) {
+                return;
+            }
+
+            const rows = document.querySelectorAll('#content-grid > div');
+            rows.forEach(row => {
+                row.children[index].classList.toggle('hidden');
+            });
+            
+            const headerCols = document.querySelectorAll('#header-grid .col-item');
+            headerCols[index].classList.toggle('hidden');
+
+            const newVisibleCount = document.querySelectorAll('#header-grid .col-item:not(.hidden)').length;
+            const colClass = `grid-cols-${newVisibleCount}`;
+
+            document.getElementById('header-grid').className = `grid gap-0 w-full border border-transparent rounded-lg overflow-hidden bg-transparent transition-all duration-300 ${colClass}`;
+            rows.forEach(row => {
+                row.className = `grid border-b border-gray-200 last:border-b-0 ${colClass}`;
+            });
+        }
     </script>
 </body>
 </html>
