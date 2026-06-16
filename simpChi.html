@@ -1,271 +1,156 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dynamic Header Layout</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        #settings-panel {
-            transition: opacity 0.2s ease, transform 0.2s ease;
-        }
-        #settings-panel.hidden {
-            display: none;
-            opacity: 0;
-            transform: translateY(-10px);
-        }
-        .bg-custom-1 { background-color: #093145; }
-        .bg-custom-2 { background-color: #ffffff; }
-        .bg-custom-3 { background-color: #000000; }
-        .text-custom-1 { color: #FFD700; }
-        .text-custom-2 { color: #000000; }
-        .text-custom-3 { color: #ffffff; }
-        
-        input[type=range] { accent-color: #94a3b8; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Star Book Icon</title>
+  <style>
+    /* =================================================================
+      GLOBAL VARIABLE DEFINITIONS (The "Control Panel")
+      =================================================================
+    */
+    :root {
+      /* Overall Canvas Layout */
+      --starBook-width: 250px;       /* Slightly larger for better canvas viewing */
+      --starBook-height: 250px;
+      --starBook-margin: 50px auto;
+      --starBook-shadow: drop-shadow(0px 8px 16px rgba(0, 0, 0, 0.15));
+
+      /* Animation Specs */
+      --hover-transition-book: fill 0.3s ease;
+      --hover-transition-star: transform 0.4s ease, fill 0.3s ease;
+      --star-rotation: none;        /* STAR REPOSITIONING FREEZE ACTIVATED */
+
+      /* Book Component Styles */
+      --book-color-base: #2c3e50;
+      --book-color-hover: #34495e;
+      --book-opacity: 0.95;
+
+      /* Star Component Styles */
+      --star-color-base: #FFD700;
+      --star-color-hover: #ffffff;
+      --star-stroke-color-base: #FFD700;
+      --star-stroke-color-hover: #f1c40f;
+      --star-stroke-width: 0.4px;
+      
+      /* Star Pivot Point (Center coordinates inside Book viewBox) */
+      --star-pivot-point: 210px 220px; 
+    }
+
+    /* Page Container styling for high visual appeal */
+    body {
+      background-color: #f7f9fc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      text-align: center;
+      padding: 30px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+      max-width: 400px;
+      width: 90%;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      color: #1a1a1a;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #666;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      margin-bottom: 25px;
+    }
+
+    /* =================================================================
+      CSS STYLES USING THE VARIABLES ONLY
+      =================================================================
+    */
+
+    /* 1. Base style for the entire starBookSVG graphic */
+    .starBookSVG {
+      width: var(--starBook-width);
+      height: var(--starBook-height);
+      display: block;
+      margin: var(--starBook-margin);
+      filter: var(--starBook-shadow);
+      cursor: pointer; /* Changes mouse cursor to a hand pointing icon on desktop */
+      -webkit-tap-highlight-color: transparent; /* Removes the default blue flash overlay on mobile tap */
+      transition: transform 0.1s ease;
+    }
+
+    /* Subtle press-down scale feedback (works on both mouse click & mobile tap) */
+    .starBookSVG:active {
+      transform: scale(0.96);
+    }
+
+    /* 2. Styling the BOOK component */
+    .bookSVG {
+      fill: var(--book-color-base);
+      opacity: var(--book-opacity);
+      transition: var(--hover-transition-book);
+    }
+
+    /* 3. Styling the STAR component */
+    .starSVG {
+      fill: var(--star-color-base);
+      stroke: var(--star-stroke-color-base);
+      stroke-width: var(--star-stroke-width);
+      transition: var(--hover-transition-star);
+      transform-origin: var(--star-pivot-point);
+    }
+
+    /* =================================================================
+      DESKTOP-ONLY HOVER INTERACTIVITY
+      This media query screens out touchscreens, targeting only devices with hover!
+      =================================================================
+    */
+    @media (hover: hover) {
+      /* When hovering with a mouse pointer, change the book color */
+      .starBookSVG:hover .bookSVG {
+        fill: var(--book-color-hover);
+      }
+
+      /* When hovering with a mouse pointer, change the star colors */
+      .starBookSVG:hover .starSVG {
+        fill: var(--star-color-hover);
+        stroke: var(--star-stroke-color-hover);
+        transform: var(--star-rotation); /* Stays 'none' to keep it static */
+      }
+    }
+  </style>
 </head>
-<body class="bg-custom-1 text-custom-1 transition-colors duration-300" id="body">
+<body>
 
-    <header class="sticky top-0 w-full z-20 bg-inherit">
-        <div class="max-w-4xl mx-auto bg-inherit px-4">
-            <div class="grid grid-cols-3 gap-0 w-full border border-transparent rounded-lg overflow-hidden bg-transparent transition-all duration-300" id="header-grid">
-                <div class="col-item pt-2 pb-0 px-4 text-sm border-r border-transparent font-col-0">BookName<br>AuthorName</div>
-                <div class="col-item pt-2 pb-0 px-4 text-sm border-r border-transparent font-col-1">繁體中文書名<br>作者</div>
-                <div class="col-item pt-2 pb-0 px-4 text-sm font-col-2">简体中文书名<br>作者</div>
-            </div>
+  <div class="container">
+    <h1>Smart Interactive Icon</h1>
+    <p><strong>Desktop (Mouse):</strong> Hover to see smooth color changes. Click to press down.</p>
+    <p><strong>Mobile (Touch):</strong> Tapping will scale the icon down dynamically (tactile feedback) but won't trigger any sticky hover colors.</p>
 
-            <div class="relative sticky top-[52px] bg-inherit pt-0 pb-1 border-b border-gray-120">
-                <div class="flex items-center justify-between max-w-4xl mx-auto px-4">
-                    <div class="flex gap-2">
-                        <button onclick="toggleCol(0)" class="px-2 py-1 bg-transparent border rounded text-xs transition-colors">Eng</button>
-                        <button onclick="toggleCol(1)" class="px-2 py-1 bg-transparent border rounded text-xs transition-colors">繁</button>
-                        <button onclick="toggleCol(2)" class="px-2 py-1 bg-transparent border rounded text-xs transition-colors">简</button>
-                    </div>
-                    
-                    <div class="flex gap-1 items-center">
-                        <button onclick="window.open(stringHomeUrl, '_blank')" class="p-1 hover:bg-gray-200 rounded transition-colors" title="Home">
-                            <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                        </button>
-                        <button onclick="toggleSettings()" id="settings-toggle-btn" class="p-1 hover:bg-gray-200 rounded transition-colors" title="Settings">
-                            <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        </button>
-                    </div>
+    <!-- ====== OUR SVG GRAPHIC ====== -->
+    <svg class="starBookSVG" version="1.1" id="Merged_SVG" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 489.708 489.708">
+      
+      <!-- ====== THE BOOK ====== -->
+      <path class="bookSVG" d="M95.246,418.534h294.476c2.762,0,5,2.238,5,5s-2.238,5-5,5H95.246c-2.762,0-5-2.238-5-5S92.484,418.534,95.246,418.534z M389.721,437.03H95.246c-2.762,0-5,2.239-5,5s2.238,5,5,5h294.476c2.762,0,5-2.239,5-5S392.483,437.03,389.721,437.03z M443.354,5 v479.708c0,2.761-2.238,5-5,5H100.969c-25.194,0-54.615-15.139-54.615-57.804V45.153C46.354,20.255,66.61,0,91.507,0h346.847 C441.116,0,443.354,2.239,443.354,5z M433.354,479.708v-72.766h-15.79v54.922c0,2.762-2.238,5-5,5H102.733 c-19.277,0-34.961-15.684-34.961-34.961c0-19.278,15.684-34.961,34.961-34.961h288.413h21.418h20.79v-10.396H94.287 c-5.577,0-12.193,2.511-18.629,7.072c-0.878,0.622-1.887,0.92-2.887,0.921c-1.566,0-3.109-0.734-4.084-2.11 c-1.596-2.253-1.063-5.374,1.189-6.97c8.111-5.748,16.78-8.913,24.41-8.913h1.683v-15.384c0-2.761,2.238-5,5-5s5,2.239,5,5v15.384 h327.385V10H105.969v312.764c0,2.762-2.238,5-5,5s-5-2.238-5-5V10h-4.462c-19.384,0-35.153,15.77-35.153,35.153v386.75 c0,45.5,37.165,47.804,44.615,47.804H433.354z M102.733,406.942c-13.764,0-24.961,11.198-24.961,24.961s11.197,24.961,24.961,24.961 h304.831v-49.922h-16.418H102.733z M167.895,106.853h202.49c2.762,0,5-2.239,5-5c0-2.762-2.238-5-5-5h-202.49c-2.762,0-5,2.238-5,5 C162.895,104.614,165.133,106.853,167.895,106.853z M167.895,147.203h202.49c2.762,0,5-2.239,5-5c0-2.762-2.238-5-5-5h-202.49c-2.762,0-5,2.238-5,5 C162.895,144.964,165.133,147.203,167.895,147.203z M327.854,177.552H210.426c-2.762,0-5,2.239-5,5 s2.238,5,5,5h117.428c2.762,0,5-2.239,5-5S330.616,177.552,327.854,177.552z"/>
 
-                    <div id="settings-panel" class="hidden absolute right-4 top-full mt-2 w-[220px] bg-white border border-gray-200 rounded-xl shadow-lg p-3 z-30">
-                        <div class="flex justify-end mb-2 h-4">
-                            <button onclick="toggleSettings()" class="text-gray-400 hover:bg-gray-100 rounded">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                            </button>
-                        </div>
-                        
-                        <div class="flex flex-col gap-3 items-center">
-                            <div class="flex gap-6">
-                                <button onclick="setBgColor(stringBackgroundColor1)" class="w-8 h-8 rounded-lg bg-custom-1 border border-gray-200"></button>
-                                <button onclick="setBgColor(stringBackgroundColor2)" class="w-8 h-8 rounded-lg bg-custom-2 border border-gray-200"></button>
-                                <button onclick="setBgColor(stringBackgroundColor3)" class="w-8 h-8 rounded-lg bg-custom-3 border border-gray-200"></button>
-                            </div>
-                            <div class="flex gap-6">
-                                <button onclick="setFontColor(stringFontColor1)" class="w-8 h-8 rounded-full border border-gray-200 text-custom-1 bg-current"></button>
-                                <button onclick="setFontColor(stringFontColor2)" class="w-8 h-8 rounded-full border border-gray-200 text-custom-2 bg-current"></button>
-                                <button onclick="setFontColor(stringFontColor3)" class="w-8 h-8 rounded-full border border-gray-200 text-custom-3 bg-current"></button>
-                            </div>
-                            <div class="w-full pt-1">
-                                <div class="flex justify-between text-[8px] text-gray-400">
-                                    <span>10px</span>
-                                    <span id="font-size-val" class="text-xs text-gray-600 font-bold">16px</span>
-                                    <span>26px</span>
-                                </div>
-                                <input type="range" id="font-size-slider" min="10" max="26" value="16" class="w-full h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer" oninput="updateFontSize(this.value)">
-                            </div>
-                            <div class="w-full flex flex-col gap-1 mt-2">
-                                <select id="font-select-0" onchange="applyFont(0, this.value)" class="w-full text-xs p-1 border rounded text-black"></select>
-                                <select id="font-select-1" onchange="applyFont(1, this.value)" class="w-full text-xs p-1 border rounded text-black"></select>
-                                <select id="font-select-2" onchange="applyFont(2, this.value)" class="w-full text-xs p-1 border rounded text-black"></select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+      <!-- ====== THE STAR ====== -->
+      <g transform="translate(190, 200) scale(8)">
+        <path class="starSVG" d="M 10.001953 1 L 8.6113281 5.7207031 L 4.7109375 2.71875 L 6.3613281 7.3554688 L 1.4414062 7.21875 L 5.5019531 10 L 1.4414062 12.78125 L 6.3613281 12.644531 L 4.7109375 17.28125 L 8.6113281 14.279297 L 10.001953 19 L 11.392578 14.279297 L 15.289062 17.28125 L 13.640625 12.644531 L 18.558594 12.78125 L 14.498047 10 L 18.558594 7.21875 L 13.640625 7.3554688 L 15.289062 2.71875 L 11.392578 5.7207031 L 10.001953 1 z M 10.001953 4.5371094 L 10.845703 7.4023438 L 13.210938 5.5820312 L 12.210938 8.3945312 L 15.195312 8.3125 L 12.730469 10 L 15.195312 11.6875 L 12.210938 11.605469 L 13.210938 14.417969 L 10.845703 12.597656 L 10.001953 15.462891 L 9.1582031 12.597656 L 6.7890625 14.417969 L 7.7910156 11.605469 L 4.8046875 11.6875 L 7.2714844 10 L 4.8046875 8.3125 L 7.7910156 8.3945312 L 6.7890625 5.5820312 L 9.1582031 7.4023438 L 10.001953 4.5371094 z " />
+      </g>
 
-    <main class="w-full max-w-4xl mx-auto mt-0 pb-10 px-4">
-        <div class="border border-gray-200 rounded-lg overflow-hidden bg-transparent" id="content-grid">
-            <!-- Dynamic Content -->
-        </div>
-    </main>
+    </svg>
+  </div>
 
-    <script>
-        const colorMap = {
-            "bg-custom-1": "#093145",
-            "bg-custom-2": "#ffffff",
-            "bg-custom-3": "#000000",
-            "text-custom-1": "#FFD700",
-            "text-custom-2": "#000000",
-            "text-custom-3": "#ffffff"
-        };
-
-        let activeFontColor = localStorage.getItem('activeFontColor') || "text-custom-1";
-        let activeBackgroundColor = localStorage.getItem('activeBackgroundColor') || "bg-custom-1";
-        let activeFontSize = localStorage.getItem('activeFontSize') || "16";
-        let columnVisibility = JSON.parse(localStorage.getItem('columnVisibility')) || [true, true, true];
-
-        const matrixContentTexts = [
-            ["EnglishPassage01", "繁體中文段落01", "简体中文段落01"],
-            ["EnglishPassage02", "繁體中文段落02", "简体中文段落02"],
-            ["EnglishPassage03", "繁體中文段落03", "简体中文段落03"],
-            ["EnglishPassage04", "繁體中文段落04", "简体中文段落04"],
-            ["EnglishPassage05", "繁體中文段落05", "简体中文段落05"],
-            ["EnglishPassage06", "繁體中文段落06", "简体中文段落06"],
-            ["EnglishPassage07", "繁體中文段落07", "简体中文段落07"],
-            ["EnglishPassage08", "繁體中文段落08", "简体中文段落08"],
-            ["EnglishPassage09", "繁體中文段落09", "简体中文段落09"],
-            ["EnglishPassage10", "繁體中文段落10", "简体中文段落10"],
-            ["EnglishPassage11", "繁體中文段落11", "简体中文段落11"],
-            ["EnglishPassage12", "繁體中文段落12", "简体中文段落12"],
-            ["EnglishPassage13", "繁體中文段落13", "简体中文段落13"],
-            ["EnglishPassage14", "繁體中文段落14", "简体中文段落14"],
-            ["EnglishPassage15", "繁體中文段落15", "简体中文段落15"],
-            ["EnglishPassage16", "繁體中文段落16", "简体中文段落16"],
-            ["EnglishPassage17", "繁體中文段落17", "简体中文段落17"],
-            ["EnglishPassage18", "繁體中文段落18", "简体中文段落18"],
-            ["EnglishPassage19", "繁體中文段落19", "简体中文段落19"],
-            ["EnglishPassage20", "繁體中文段落20", "简体中文段落20"],
-            ["EnglishPassage21", "繁體中文段落21", "简体中文段落21"],
-            ["EnglishPassage22", "繁體中文段落22", "简体中文段落22"]
-        ];
-
-        function renderContent() {
-            const container = document.getElementById('content-grid');
-            container.innerHTML = '';
-            matrixContentTexts.forEach((row, rowIndex) => {
-                const rowDiv = document.createElement('div');
-                const visibleCount = columnVisibility.filter(Boolean).length;
-                rowDiv.className = `grid grid-cols-${visibleCount} ${rowIndex < matrixContentTexts.length - 1 ? 'border-b border-gray-200' : ''}`;
-                
-                row.forEach((text, colIndex) => {
-                    const cell = document.createElement('div');
-                    cell.className = `pt-1 pb-1 px-4 ${colIndex < 2 ? 'border-r border-gray-200' : ''} font-col-${colIndex} ${columnVisibility[colIndex] ? '' : 'hidden'}`;
-                    cell.textContent = text;
-                    cell.style.fontSize = activeFontSize + 'px';
-                    rowDiv.appendChild(cell);
-                });
-                container.appendChild(rowDiv);
-            });
-            
-            // Set header grid
-            const headerGrid = document.getElementById('header-grid');
-            const headerItems = headerGrid.querySelectorAll('.col-item');
-            headerGrid.className = `grid grid-cols-${columnVisibility.filter(Boolean).length} gap-0 w-full border border-transparent rounded-lg overflow-hidden bg-transparent transition-all duration-300`;
-            headerItems.forEach((item, idx) => {
-                item.className = `col-item pt-2 pb-0 px-4 text-sm border-r border-transparent font-col-${idx} ${columnVisibility[idx] ? '' : 'hidden'}`;
-            });
-        }
-        
-        function applySavedSettings() {
-            const body = document.getElementById('body');
-            body.classList.add(activeBackgroundColor, activeFontColor);
-            document.getElementById('font-size-slider').value = activeFontSize;
-            document.getElementById('font-size-val').innerText = activeFontSize + 'px';
-        }
-
-        renderContent();
-        applySavedSettings();
-
-        const matrixFontTypes = [
-            ["Monospace", "微軟正黑體", "微软正黑体"],
-            ["Calibri", "標楷體", "标楷体"],
-            ["Sans-Serif", "新細明體", "新细明体"]
-        ];
-
-        let stringFontType1 = matrixFontTypes[0][0];
-        let stringFontType2 = matrixFontTypes[0][1];
-        let stringFontType3 = matrixFontTypes[0][2];
-
-        function initFontSelects() {
-            [0, 1, 2].forEach((col, idx) => {
-                const select = document.getElementById(`font-select-${idx}`);
-                matrixFontTypes.forEach(row => {
-                    const opt = document.createElement("option");
-                    opt.value = row[idx];
-                    opt.textContent = row[idx];
-                    select.appendChild(opt);
-                });
-                select.value = [stringFontType1, stringFontType2, stringFontType3][idx];
-            });
-        }
-        initFontSelects();
-
-        function applyFont(colIdx, font) {
-            document.querySelectorAll(`.font-col-${colIdx}`).forEach(el => el.style.fontFamily = font);
-        }
-
-        const stringHomeUrl = "https://www.google.com";
-        const stringBackgroundColor1 = "bg-custom-1";
-        const stringBackgroundColor2 = "bg-custom-2";
-        const stringBackgroundColor3 = "bg-custom-3";
-        const stringFontColor1 = "text-custom-1";
-        const stringFontColor2 = "text-custom-2";
-        const stringFontColor3 = "text-custom-3";
-
-        function toggleSettings() { document.getElementById('settings-panel').classList.toggle('hidden'); }
-        
-        document.addEventListener('click', function(event) {
-            const settingsPanel = document.getElementById('settings-panel');
-            const settingsButton = document.getElementById('settings-toggle-btn');
-            
-            if (!settingsPanel.contains(event.target) && !settingsButton.contains(event.target)) {
-                if (!settingsPanel.classList.contains('hidden')) {
-                    settingsPanel.classList.add('hidden');
-                }
-            }
-        });
-
-        function setBgColor(colorClass) {
-            const selectedBackgroundColorHex = colorMap[colorClass];
-            const activeFontColorHex = colorMap[activeFontColor];
-
-            if (selectedBackgroundColorHex === activeFontColorHex) return;
-
-            const body = document.getElementById('body');
-            body.classList.remove(stringBackgroundColor1, stringBackgroundColor2, stringBackgroundColor3);
-            body.classList.add(colorClass);
-            
-            activeBackgroundColor = colorClass;
-            localStorage.setItem('activeBackgroundColor', colorClass);
-        }
-
-        function setFontColor(colorClass) {
-            const selectedFontColorHex = colorMap[colorClass];
-            const activeBackgroundColorHex = colorMap[activeBackgroundColor];
-
-            if (selectedFontColorHex === activeBackgroundColorHex) return;
-
-            const body = document.getElementById('body');
-            body.classList.remove(stringFontColor1, stringFontColor2, stringFontColor3);
-            body.classList.add(colorClass);
-            
-            activeFontColor = colorClass;
-            localStorage.setItem('activeFontColor', colorClass);
-        }
-
-        function updateFontSize(value) {
-            document.getElementById('font-size-val').innerText = value + 'px';
-            document.querySelectorAll('#content-grid .grid > div').forEach(el => el.style.fontSize = value + 'px');
-            activeFontSize = value;
-            localStorage.setItem('activeFontSize', value);
-        }
-
-        function toggleCol(index) {
-            const visibleCols = columnVisibility.filter(Boolean).length;
-            const targetVisible = columnVisibility[index];
-            
-            if (visibleCols === 1 && targetVisible) return;
-
-            columnVisibility[index] = !targetVisible;
-            localStorage.setItem('columnVisibility', JSON.stringify(columnVisibility));
-            renderContent();
-        }
-    </script>
 </body>
 </html>
