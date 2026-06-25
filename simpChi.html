@@ -1,156 +1,350 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interactive Star Book Icon</title>
-  <style>
-    /* =================================================================
-      GLOBAL VARIABLE DEFINITIONS (The "Control Panel")
-      =================================================================
-    */
-    :root {
-      /* Overall Canvas Layout */
-      --starBook-width: 250px;       /* Slightly larger for better canvas viewing */
-      --starBook-height: 250px;
-      --starBook-margin: 50px auto;
-      --starBook-shadow: drop-shadow(0px 8px 16px rgba(0, 0, 0, 0.15));
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Table Tree View</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Lock the viewport and apply dynamic background configurations */
+        html, body {
+            background-color: var(--pageBackgroundColor, #FFFFFF) !important;
+            overflow: hidden !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
 
-      /* Animation Specs */
-      --hover-transition-book: fill 0.3s ease;
-      --hover-transition-star: transform 0.4s ease, fill 0.3s ease;
-      --star-rotation: none;        /* STAR REPOSITIONING FREEZE ACTIVATED */
+        /* Outer container handles the border and frame */
+        #contentPanelWrapper {
+            height: calc(100vh - (var(--contentPanelTopBottomMargin, 20px) * 2)) !important;
+            max-width: var(--contentPanelWidthMax, 500px) !important;
+            width: 95% !important;
+            border-color: var(--contentBorderColor, #000000) !important;
+            background-color: transparent !important;
+        }
+        
+        /* Inner container handles the scrolling */
+        #contentPanel {
+            scrollbar-gutter: stable;
+            overflow-anchor: none;
+            background-color: transparent !important;
+            height: 100% !important;
+        }
 
-      /* Book Component Styles */
-      --book-color-base: #2c3e50;
-      --book-color-hover: #34495e;
-      --book-opacity: 0.95;
+        .firstLevelSubject {
+            font-family: var(--contentEngFontType), var(--contentTraChiFontType), var(--contentSimChiFontType), -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--contentEngFontColor, #000000) !important;
+            text-decoration: none !important;
+            cursor: pointer;
+            outline: none;
+            display: block;
+            background-color: transparent !important;
+        }
+        .firstLevelSubject:hover {
+            text-decoration: none !important;
+            color: var(--contentEngFontColor, #000000) !important;
+        }
+        .contentContainer {
+            font-family: var(--contentEngFontType), var(--contentTraChiFontType), var(--contentSimChiFontType), -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--contentEngFontColor, #000000);
+            background-color: transparent !important;
+        }
+        
+        .secondLevelText {
+            font-family: var(--contentEngFontType), var(--contentTraChiFontType), var(--contentSimChiFontType), -apple-system, BlinkMacSystemFont, sans-serif;
+            border: 0px solid var(--contentBorderColor, #000000);
+            border-radius: 22px;
+            padding: 0px 24px;
+            margin-top: 0px;
+            margin-bottom: 0px;
+            background-color: transparent !important;
+            box-sizing: border-box;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            color: var(--contentEngFontColor, #000000);
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                        opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), 
+                        padding 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+                        border-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .secondLevelText.expanded {
+            border-width: 1px;
+            padding: 16px 24px;
+            margin-top: 8px;
+            margin-bottom: 24px;
+            max-height: 2000px;
+            opacity: 1;
+        }
 
-      /* Star Component Styles */
-      --star-color-base: #FFD700;
-      --star-color-hover: #ffffff;
-      --star-stroke-color-base: #FFD700;
-      --star-stroke-color-hover: #f1c40f;
-      --star-stroke-width: 0.4px;
-      
-      /* Star Pivot Point (Center coordinates inside Book viewBox) */
-      --star-pivot-point: 210px 220px; 
-    }
-
-    /* Page Container styling for high visual appeal */
-    body {
-      background-color: #f7f9fc;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
-
-    .container {
-      text-align: center;
-      padding: 30px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
-      max-width: 400px;
-      width: 90%;
-    }
-
-    h1 {
-      font-size: 1.5rem;
-      color: #1a1a1a;
-      margin-bottom: 10px;
-    }
-
-    p {
-      color: #666;
-      font-size: 0.9rem;
-      line-height: 1.4;
-      margin-bottom: 25px;
-    }
-
-    /* =================================================================
-      CSS STYLES USING THE VARIABLES ONLY
-      =================================================================
-    */
-
-    /* 1. Base style for the entire starBookSVG graphic */
-    .starBookSVG {
-      width: var(--starBook-width);
-      height: var(--starBook-height);
-      display: block;
-      margin: var(--starBook-margin);
-      filter: var(--starBook-shadow);
-      cursor: pointer; /* Changes mouse cursor to a hand pointing icon on desktop */
-      -webkit-tap-highlight-color: transparent; /* Removes the default blue flash overlay on mobile tap */
-      transition: transform 0.1s ease;
-    }
-
-    /* Subtle press-down scale feedback (works on both mouse click & mobile tap) */
-    .starBookSVG:active {
-      transform: scale(0.96);
-    }
-
-    /* 2. Styling the BOOK component */
-    .bookSVG {
-      fill: var(--book-color-base);
-      opacity: var(--book-opacity);
-      transition: var(--hover-transition-book);
-    }
-
-    /* 3. Styling the STAR component */
-    .starSVG {
-      fill: var(--star-color-base);
-      stroke: var(--star-stroke-color-base);
-      stroke-width: var(--star-stroke-width);
-      transition: var(--hover-transition-star);
-      transform-origin: var(--star-pivot-point);
-    }
-
-    /* =================================================================
-      DESKTOP-ONLY HOVER INTERACTIVITY
-      This media query screens out touchscreens, targeting only devices with hover!
-      =================================================================
-    */
-    @media (hover: hover) {
-      /* When hovering with a mouse pointer, change the book color */
-      .starBookSVG:hover .bookSVG {
-        fill: var(--book-color-hover);
-      }
-
-      /* When hovering with a mouse pointer, change the star colors */
-      .starBookSVG:hover .starSVG {
-        fill: var(--star-color-hover);
-        stroke: var(--star-stroke-color-hover);
-        transform: var(--star-rotation); /* Stays 'none' to keep it static */
-      }
-    }
-  </style>
+        .scroll-mt-24 {
+            scroll-margin-top: 96px !important;
+        }
+    </style>
 </head>
-<body>
+<body class="text-slate-800 min-h-screen font-sans antialiased flex items-center justify-center">
 
-  <div class="container">
-    <h1>Smart Interactive Icon</h1>
-    <p><strong>Desktop (Mouse):</strong> Hover to see smooth color changes. Click to press down.</p>
-    <p><strong>Mobile (Touch):</strong> Tapping will scale the icon down dynamically (tactile feedback) but won't trigger any sticky hover colors.</p>
+    <main class="w-full max-w-2xl px-4 sm:px-6 flex justify-center">
+        <div id="contentPanelWrapper" class="rounded-xl border shadow-sm flex flex-col items-center justify-start overflow-hidden">
+            <div id="contentPanel" class="w-full p-8 overflow-y-auto flex flex-col items-center justify-start">
+                
+                <div class="w-full max-w-md mb-2 border-b border-dashed border-slate-200 pb-4 text-center">
+                    <span class="text-xs bg-slate-100 text-slate-500 font-bold px-3 py-1 rounded-full uppercase tracking-wider">Tree Format Preview</span>
+                    <p class="text-xs text-slate-400 mt-2">Click on a subject to expand or collapse its items smoothly</p>
+                </div>
 
-    <!-- ====== OUR SVG GRAPHIC ====== -->
-    <svg class="starBookSVG" version="1.1" id="Merged_SVG" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 489.708 489.708">
-      
-      <!-- ====== THE BOOK ====== -->
-      <path class="bookSVG" d="M95.246,418.534h294.476c2.762,0,5,2.238,5,5s-2.238,5-5,5H95.246c-2.762,0-5-2.238-5-5S92.484,418.534,95.246,418.534z M389.721,437.03H95.246c-2.762,0-5,2.239-5,5s2.238,5,5,5h294.476c2.762,0,5-2.239,5-5S392.483,437.03,389.721,437.03z M443.354,5 v479.708c0,2.761-2.238,5-5,5H100.969c-25.194,0-54.615-15.139-54.615-57.804V45.153C46.354,20.255,66.61,0,91.507,0h346.847 C441.116,0,443.354,2.239,443.354,5z M433.354,479.708v-72.766h-15.79v54.922c0,2.762-2.238,5-5,5H102.733 c-19.277,0-34.961-15.684-34.961-34.961c0-19.278,15.684-34.961,34.961-34.961h288.413h21.418h20.79v-10.396H94.287 c-5.577,0-12.193,2.511-18.629,7.072c-0.878,0.622-1.887,0.92-2.887,0.921c-1.566,0-3.109-0.734-4.084-2.11 c-1.596-2.253-1.063-5.374,1.189-6.97c8.111-5.748,16.78-8.913,24.41-8.913h1.683v-15.384c0-2.761,2.238-5,5-5s5,2.239,5,5v15.384 h327.385V10H105.969v312.764c0,2.762-2.238,5-5,5s-5-2.238-5-5V10h-4.462c-19.384,0-35.153,15.77-35.153,35.153v386.75 c0,45.5,37.165,47.804,44.615,47.804H433.354z M102.733,406.942c-13.764,0-24.961,11.198-24.961,24.961s11.197,24.961,24.961,24.961 h304.831v-49.922h-16.418H102.733z M167.895,106.853h202.49c2.762,0,5-2.239,5-5c0-2.762-2.238-5-5-5h-202.49c-2.762,0-5,2.238-5,5 C162.895,104.614,165.133,106.853,167.895,106.853z M167.895,147.203h202.49c2.762,0,5-2.239,5-5c0-2.762-2.238-5-5-5h-202.49c-2.762,0-5,2.238-5,5 C162.895,144.964,165.133,147.203,167.895,147.203z M327.854,177.552H210.426c-2.762,0-5,2.239-5,5 s2.238,5,5,5h117.428c2.762,0,5-2.239,5-5S330.616,177.552,327.854,177.552z"/>
+                <div id="contentPage" class="contentContainer flex flex-col items-center w-full max-w-md">
+                    <!-- Dynamic Tree Items inserted here -->
+                </div>
 
-      <!-- ====== THE STAR ====== -->
-      <g transform="translate(190, 200) scale(8)">
-        <path class="starSVG" d="M 10.001953 1 L 8.6113281 5.7207031 L 4.7109375 2.71875 L 6.3613281 7.3554688 L 1.4414062 7.21875 L 5.5019531 10 L 1.4414062 12.78125 L 6.3613281 12.644531 L 4.7109375 17.28125 L 8.6113281 14.279297 L 10.001953 19 L 11.392578 14.279297 L 15.289062 17.28125 L 13.640625 12.644531 L 18.558594 12.78125 L 14.498047 10 L 18.558594 7.21875 L 13.640625 7.3554688 L 15.289062 2.71875 L 11.392578 5.7207031 L 10.001953 1 z M 10.001953 4.5371094 L 10.845703 7.4023438 L 13.210938 5.5820312 L 12.210938 8.3945312 L 15.195312 8.3125 L 12.730469 10 L 15.195312 11.6875 L 12.210938 11.605469 L 13.210938 14.417969 L 10.845703 12.597656 L 10.001953 15.462891 L 9.1582031 12.597656 L 6.7890625 14.417969 L 7.7910156 11.605469 L 4.8046875 11.6875 L 7.2714844 10 L 4.8046875 8.3125 L 7.7910156 8.3945312 L 6.7890625 5.5820312 L 9.1582031 7.4023438 L 10.001953 4.5371094 z " />
-      </g>
+                <div id="empty-state" class="hidden text-center text-slate-400 py-16">
+                    <i data-lucide="info" class="w-10 h-10 mx-auto mb-2 opacity-50"></i>
+                    <p class="font-semibold text-slate-600">No records rendered</p>
+                    <p class="text-xs text-slate-400 mt-1">Adjust index mappings or upload a valid CSV file.</p>
+                </div>
+            </div>
+        </div>
+    </main>
 
-    </svg>
-  </div>
+    <script>
+        let subjectColIndexNum = 1;
+        let subjectEngColNum = 5;
+        let subjectTraChiColNum = 6;
+        let subjectSimChiColNum = 7;
+        let textColIndexNum = 2;
+        let textEngColNum = 8;
+        let textTraChiColNum = 9;
+        let textSimChiColNum = 10;
+        
+        let collapseEng = false;
+        let collapseTraChi = false;
+        let collapseSimChi = true;
+        
+        let collapseTextEng = false;
+        let collapseTextTraChi = false;
+        let collapseTextSimChi = true;
 
+        let contentEngFontSize = '1rem';
+        let contentTraChiSize = '0.9rem';
+        let contentSimChiSize = '0.9rem';
+        let contentLineHeight = '1.2';
+        let textBoxWidthMax = '480px';
+        
+        let contentEngFontColor = '#000000';
+        let contentBorderColor = '#000000';
+        let pageBackgroundColor = '#FFFFFF';
+        let contentPanelTopBottomMargin = '20px';
+        let contentPanelWidthMax = '500px';
+
+        let contentEngFontType = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+        let contentTraChiFontType = '"微軟正黑體", "標楷體", "新細明體"';
+        let contentSimChiFontType = '"PingFang SC", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif';
+
+        let initialTops = {};
+        const preloadedCSV = `Index,1,2,3,4,5,6,7,8,9,10
+1,https://docs.google.com/spreadsheets/d/1dXRItJfmsPFzPHYRGVBPvv3Pdrb-vRFbletJexfi1HI/edit?usp=sharing,,,,,,,,,
+2,1,1,text00010001,https://bahaihongkong.blogspot.com/2026/06/text00010001.html,Bahá’u’lláh,巴哈歐拉,巴哈欧拉,Kitáb-i-Aqdas,亞格達斯經,亚格达斯经
+3,1,2,text00010002,https://bahaihongkong.blogspot.com/2026/06/text00010002.html,,,,The Book of Certitude,篤信經,笃信经
+4,1,3,text00010003,https://bahaihongkong.blogspot.com/2026/06/text00010003.html,,,,The Seven Valleys,七谷經,七谷经
+5,1,4,text00010004,https://bahaihongkong.blogspot.com/2026/06/text00010004.html,,,,The Four Valleys,四谷經,四谷经
+6,1,5,text00010005,https://bahaihongkong.blogspot.com/2026/06/text00010005.html,,,,The Hidden Words,隱言經,隐言经
+7,1,6,text00010006,https://bahaihongkong.blogspot.com/2026/06/text00010006.html,,,,Tablets of Bahá'u'lláh,巴哈歐拉書簡集,巴哈欧拉书简集
+8,1,7,text00010007,https://bahaihongkong.blogspot.com/2026/06/text00010007.html,,,,Gleanings from the Writings of Bahá'u'lláh,巴哈歐拉聖作選粹,巴哈欧拉圣作选粹
+9,1,8,text00010008,https://bahaihongkong.blogspot.com/2026/06/text00010008.html,,,,Gems of Divine Mysteries,聖秘瑰寶,圣秘瑰宝
+10,1,9,text00010009,https://bahaihongkong.blogspot.com/2026/06/text00010009.html,,,,The Tabernacle of Unity,大同聖帳,大同圣帐
+11,1,10,text00010010,https://bahaihongkong.blogspot.com/2026/06/text00010010.html,,,,Epistle to the Son of the Wolf,致狼子書,致狼子书
+12,2,1,text00020001,https://bahaihongkong.blogspot.com/2026/06/text00020001.html,The Báb,巴孛,巴孛,Selections from the Writings of the Báb,巴孛著作選集,巴孛著作选集
+13,2,2,text00020002,https://bahaihongkong.blogspot.com/2026/06/text00020002.html,,,,The Persian Bayán,波斯貝揚經,波斯貝揚經
+14,3,1,text00030001,https://bahaihongkong.blogspot.com/2026/06/text00030001.html,‘Abdu’l-Bahá,阿博都-巴哈,阿博都-巴哈,Selections from the Writings of 'Abdu'l-Bahá,阿博都-巴哈文選,阿博都-巴哈文选
+15,3,2,text00030002,https://bahaihongkong.blogspot.com/2026/06/text00030002.html,,,,The Will And Testament of 'Abdu'l-Bahá,阿博都-巴哈遺囑,阿博都-巴哈遗嘱
+16,3,3,text00030003,https://bahaihongkong.blogspot.com/2026/06/text00030003.html,,,,Some Answered Questions,已答之問,已答之问
+17,3,4,text00030004,https://bahaihongkong.blogspot.com/2026/06/text00030004.html,,,,The Secret of Divine Civilization,神聖文明的秘訣,神圣文明的秘诀
+18,3,5,text00030005,https://bahaihongkong.blogspot.com/2026/06/text00030005.html,,,,Paris Talks,巴黎談話,巴黎谈话
+19,3,6,text00030006,https://bahaihongkong.blogspot.com/2026/06/text00030006.html,,,,Tablets of the Divine Plan,神聖計劃書簡,神圣计划书简
+20,3,7,text00030007,https://bahaihongkong.blogspot.com/2026/06/text00030007.html,,,,Memorials of the Faithful,忠信名錄,忠信名录
+21,4,1,text00040001,https://bahaihongkong.blogspot.com/2026/06/text00040001.html,Shoghi Effendi,守基·阿芬第,守基·阿芬第,God Passes By,神過其境,神过其境
+22,4,2,text00040002,https://bahaihongkong.blogspot.com/2026/06/text00040002.html,,,,The Promised Day Is Come,應許之日已來臨,应许之日已來临
+23,4,3,text00040003,https://bahaihongkong.blogspot.com/2026/06/text00040003.html,,,,Advent of Divine Justice,神聖正義的降臨,神圣正义的降临
+24,4,4,text00040004,https://bahaihongkong.blogspot.com/2026/06/text00040004.html,,,,World Order of Bahá'u'lláh,巴哈歐拉的世界秩序,巴哈欧拉的世界秩序
+25,5,1,text00050001,https://bahaihongkong.blogspot.com/2026/06/text00050001.html,Universal House of Justice,世界正義院,世界正义院,The Constitution of the Universal House of Justice,世界正義院憲章,世界正義院憲章
+26,5,2,text00050002,https://bahaihongkong.blogspot.com/2026/06/text00050002.html,,,,Turning Point,轉折點,转折点
+27,5,11,text00050011,https://bahaihongkong.blogspot.com/2026/06/text00050011.html,,,,Bahá'í Sacred Writings,巴哈伊聖作,巴哈伊圣作
+28,6,1,text00060001,https://bahaihongkong.blogspot.com/2026/06/text00060001.html,Others,其他,其他,The Prosperity of Humankind,人類的繁榮,人类的繁荣
+29,6,2,text00060002,https://bahaihongkong.blogspot.com/2026/06/text00060002.html,,,,Who Is Writing the Future,誰在書寫我們的未來,谁在书写我们的未来
+30,6,3,text00060003,https://bahaihongkong.blogspot.com/2026/06/text00060003.html,,,,Promise of World Peace,世界和平的承諾,世界和平的承诺
+31,6,4,text00060004,https://bahaihongkong.blogspot.com/2026/06/text00060004.html,,,,Hands of the Cause of God Volume I,《聖輔》第一卷,《圣辅》第一卷`;
+
+        let currentCsvData = preloadedCSV;
+
+        function parseCSV(text) {
+            let lines = text.split(/\r?\n/);
+            let rawRows = lines.map(line => {
+                let result = [];
+                let current = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    let char = line[i];
+                    if (char === '"') inQuotes = !inQuotes;
+                    else if (char === ',' && !inQuotes) {
+                        result.push(current.trim());
+                        current = '';
+                    } else current += char;
+                }
+                result.push(current.trim());
+                return result;
+            }).filter(row => row.length > 1);
+            const maxCols = Math.max(...rawRows.map(r => r.length), 12);
+            return rawRows.map(row => { while(row.length < maxCols) row.push(''); return row; });
+        }
+
+        function recordInitialPositions() {
+            initialTops = {};
+            const subjects = document.querySelectorAll('[id^="subject-header-"]');
+            const contentPanel = document.getElementById('contentPanel');
+            if (!contentPanel) return;
+            subjects.forEach(header => {
+                const subId = header.id.replace('subject-header-', '');
+                const parentRect = contentPanel.getBoundingClientRect();
+                const headerRect = header.getBoundingClientRect();
+                initialTops[subId] = {
+                    panelTop: headerRect.top - parentRect.top + contentPanel.scrollTop,
+                    docTop: headerRect.top + (window.pageYOffset || document.documentElement.scrollTop)
+                };
+            });
+        }
+
+        function isSubjectVisible(subId) {
+            const header = document.getElementById(`subject-header-${subId}`);
+            const panel = document.getElementById('contentPanel');
+            if (!header || !panel) return false;
+            const hRect = header.getBoundingClientRect();
+            const pRect = panel.getBoundingClientRect();
+            return (hRect.top >= pRect.top && hRect.bottom <= pRect.bottom);
+        }
+
+        function restoreMemorisedPosition(subId) {
+            const contentPanel = document.getElementById('contentPanel');
+            const pos = initialTops[subId];
+            if (!pos) return;
+            contentPanel.scrollTo({ top: Math.max(0, pos.panelTop - 40), behavior: 'smooth' });
+        }
+
+        function toggleBox(subId) {
+            const targetBox = document.getElementById(`box-${subId}`);
+            if (!targetBox) return;
+            const isAlreadyExpanded = targetBox.classList.contains('expanded');
+            if (isAlreadyExpanded) {
+                targetBox.classList.remove('expanded');
+                return;
+            }
+            let openedBoxId = null;
+            document.querySelectorAll('.secondLevelText').forEach(box => {
+                if (box.id !== `box-${subId}` && box.classList.contains('expanded')) {
+                    openedBoxId = box.id.replace('box-', '');
+                    box.classList.remove('expanded');
+                }
+            });
+            if (openedBoxId) {
+                setTimeout(() => {
+                    if (!isSubjectVisible(subId)) restoreMemorisedPosition(subId);
+                    setTimeout(() => {
+                        targetBox.classList.add('expanded');
+                    }, 150);
+                }, 450);
+            } else {
+                if (!isSubjectVisible(subId)) {
+                    restoreMemorisedPosition(subId);
+                }
+                targetBox.classList.add('expanded');
+            }
+        }
+
+        function buildContent() {
+            document.documentElement.style.setProperty('--contentEngFontColor', contentEngFontColor);
+            document.documentElement.style.setProperty('--contentBorderColor', contentBorderColor);
+            document.documentElement.style.setProperty('--pageBackgroundColor', pageBackgroundColor);
+            document.documentElement.style.setProperty('--contentPanelTopBottomMargin', contentPanelTopBottomMargin);
+            document.documentElement.style.setProperty('--contentPanelWidthMax', contentPanelWidthMax);
+            document.documentElement.style.setProperty('--contentEngFontType', contentEngFontType);
+            document.documentElement.style.setProperty('--contentTraChiFontType', contentTraChiFontType);
+            document.documentElement.style.setProperty('--contentSimChiFontType', contentSimChiFontType);
+
+            const rawMatrix = parseCSV(currentCsvData);
+            const cleanMatrix = rawMatrix.filter((row, idx) => {
+                if (idx === 0) return false;
+                const subVal = row[subjectColIndexNum];
+                const textVal = row[textColIndexNum];
+                if (!subVal || !textVal) return false;
+                return !isNaN(parseInt(subVal, 10)) && !isNaN(parseInt(textVal, 10));
+            });
+            const subjectIds = Array.from(new Set(cleanMatrix.map(r => parseInt(r[subjectColIndexNum], 10)))).sort((a, b) => a - b);
+            const contentPageBuilt = document.getElementById('contentPage');
+            contentPageBuilt.innerHTML = '';
+            if (subjectIds.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                return;
+            }
+            document.getElementById('empty-state').classList.add('hidden');
+            subjectIds.forEach(subId => {
+                const subjectRow = cleanMatrix.find(row => parseInt(row[subjectColIndexNum], 10) === subId);
+                const subEng = subjectRow[subjectEngColNum] || '';
+                const subTra = subjectRow[subjectTraChiColNum] || '';
+                const subSim = subjectRow[subjectSimChiColNum] || '';
+                
+                const firstLevelSubjectList = document.createElement('div');
+                firstLevelSubjectList.id = `subject-header-${subId}`;
+                firstLevelSubjectList.className = "flex flex-col items-center justify-center text-center mt-6 mb-2 select-none cursor-pointer hover:text-indigo-600 transition-colors duration-200 scroll-mt-24";
+                firstLevelSubjectList.onclick = function() { toggleBox(subId); };
+                
+                let firstLevelSubjectHtml = '';
+                if (!collapseEng && subEng) firstLevelSubjectHtml += `<div style="font-size: ${contentEngFontSize}; line-height: ${contentLineHeight}; color: var(--contentEngFontColor); font-family: var(--contentEngFontType);">${subEng}</div>`;
+                if (!collapseTraChi && subTra) firstLevelSubjectHtml += `<div class="text-slate-800" style="font-size: ${contentTraChiSize}; line-height: ${contentLineHeight}; font-family: var(--contentTraChiFontType);">${subTra}</div>`;
+                if (!collapseSimChi && subSim) firstLevelSubjectHtml += `<div class="text-slate-800" style="font-size: ${contentSimChiSize}; line-height: ${contentLineHeight}; font-family: var(--contentSimChiFontType);">${subSim}</div>`;
+                
+                firstLevelSubjectList.innerHTML = firstLevelSubjectHtml;
+                if (firstLevelSubjectHtml !== '') contentPageBuilt.appendChild(firstLevelSubjectList);
+                
+                const textRows = cleanMatrix.filter(row => parseInt(row[subjectColIndexNum], 10) === subId).sort((a, b) => parseInt(a[textColIndexNum], 10) - parseInt(b[textColIndexNum], 10));
+                if (textRows.length > 0) {
+                    const secondLevelTextBox = document.createElement('div');
+                    secondLevelTextBox.id = `box-${subId}`;
+                    secondLevelTextBox.className = "secondLevelText flex flex-col gap-4 text-left";
+                    secondLevelTextBox.style.width = "fit-content";
+                    secondLevelTextBox.style.maxWidth = textBoxWidthMax;
+                    let hasValidChildren = false;
+                    textRows.forEach(row => {
+                        const textEng = row[textEngColNum] || '';
+                        const textTra = row[textTraChiColNum] || '';
+                        const textSim = row[textSimChiColNum] || '';
+                        const url = row[4] || '#';
+                        const showEng = !collapseEng && !collapseTextEng && textEng;
+                        const showTra = !collapseTraChi && !collapseTextTraChi && textTra;
+                        const showSim = !collapseSimChi && !collapseTextSimChi && textSim;
+                        if (showEng || showTra || showSim) {
+                            hasValidChildren = true;
+                            const textGroup = document.createElement('div');
+                            textGroup.className = "flex flex-col gap-0 text-sm md:text-base";
+                            let textGroupHtml = '';
+                            if (showEng) textGroupHtml += `<a href="${url}" target="_blank" class="firstLevelSubject" style="font-size: ${contentEngFontSize}; line-height: ${contentLineHeight}; color: var(--contentEngFontColor) !important; font-family: var(--contentEngFontType);">${textEng}</a>`;
+                            if (showTra) textGroupHtml += `<a href="${url}" target="_blank" class="firstLevelSubject" style="font-size: ${contentTraChiSize}; line-height: ${contentLineHeight}; font-family: var(--contentTraChiFontType);">${textTra}</a>`;
+                            if (showSim) textGroupHtml += `<a href="${url}" target="_blank" class="firstLevelSubject" style="font-size: ${contentSimChiSize}; line-height: ${contentLineHeight}; font-family: var(--contentSimChiFontType);">${textSim}</a>`;
+                            textGroup.innerHTML = textGroupHtml;
+                            secondLevelTextBox.appendChild(textGroup);
+                        }
+                    });
+                    if (hasValidChildren) contentPageBuilt.appendChild(secondLevelTextBox);
+                }
+            });
+            setTimeout(() => { recordInitialPositions(); }, 60);
+        }
+
+        window.onload = function() {
+            lucide.createIcons();
+            buildContent();
+        };
+    </script>
 </body>
 </html>
